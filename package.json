@@ -113,6 +113,7 @@
     "moo": "^0.5.1",
     "multimatch": "^5.0.0",
     "mustache": "^4.0.1",
+    "node-sass": "^4.14.0",
     "normalize-path": "^3.0.0",
     "nunjucks": "^3.2.2",
     "parse-filepath": "^1.0.2",
