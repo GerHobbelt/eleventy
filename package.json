@@ -1,6 +1,6 @@
 {
   "name": "@gerhobbelt/eleventy",
-  "version": "0.11.0-4",
+  "version": "0.11.0-5",
   "description": "Transform a directory of templates into HTML.",
   "publishConfig": {
     "access": "public"
