@@ -130,12 +130,12 @@ class TemplateData {
     let paths = [
       `${dir}/**/*.json`, // covers .11tydata.json too
       `${dir}/**/*${this.config.jsDataFileSuffix}.cjs`,
-      `${dir}/**/*${this.config.jsDataFileSuffix}.js`
+      `${dir}/**/*${this.config.jsDataFileSuffix}.js`,
     ];
 
     if (this.hasUserDataExtensions()) {
       let userPaths = this.getUserDataExtensions().map(
-        extension => `${dir}/**/*.${extension}` // covers .11tydata.{extension} too
+        (extension) => `${dir}/**/*.${extension}` // covers .11tydata.{extension} too
       );
       paths = userPaths.concat(paths);
     }
@@ -146,7 +146,7 @@ class TemplateData {
   async getTemplateJavaScriptDataFileGlob() {
     let dir = await this.getInputDir();
     return TemplatePath.addLeadingDotSlashArray([
-      `${dir}/**/*${this.config.jsDataFileSuffix}.js`
+      `${dir}/**/*${this.config.jsDataFileSuffix}.js`,
     ]);
   }
 
@@ -182,7 +182,7 @@ class TemplateData {
     fsBench.before();
     let paths = await fastglob(await this.getGlobalDataGlob(), {
       caseSensitiveMatch: false,
-      dot: true
+      dot: true,
     });
     fsBench.after();
 
@@ -426,6 +426,7 @@ class TemplateData {
 
     // top level
     paths.push(base + ".js");
+    paths.push(base + ".cjs");
     paths.push(base + ".json");
     this._pushExtensionsToPaths(paths, base, extensions);
   }
@@ -480,7 +481,11 @@ class TemplateData {
       }
     }
 
-    debug("getLocalDataPaths(%o): %s", templatePath, JSON.stringify(paths, null, 2));
+    debug(
+      "getLocalDataPaths(%o): %s",
+      templatePath,
+      JSON.stringify(paths, null, 2)
+    );
     return lodashUniq(paths).reverse();
   }
 
