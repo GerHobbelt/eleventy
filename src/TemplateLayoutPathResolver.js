@@ -38,7 +38,12 @@ class TemplateLayoutPathResolver {
   init() {
     // we might be able to move this into the constructor?
     this.aliases = Object.assign({}, this.config.layoutAliases, this.aliases);
-    // debug("Current layout aliases: %o", this.aliases);
+    debug(
+      "Current layout aliases: %o for path %o / originalPath %o",
+      this.aliases,
+      this.path,
+      this.originalPath
+    );
 
     if (this.path in this.aliases) {
       // debug(
@@ -50,17 +55,35 @@ class TemplateLayoutPathResolver {
     }
 
     this.pathAlreadyHasExtension = this.dir + "/" + this.path;
+    debug(
+      "Current layout alias --> pathAlreadyHasExtension: %o for path %o / originalPath %o",
+      this.pathAlreadyHasExtension,
+      this.path,
+      this.originalPath
+    );
 
     if (
       this.path.split(".").length > 0 &&
       fs.existsSync(this.pathAlreadyHasExtension)
     ) {
       this.filename = this.path;
-      this.fullPath = TemplatePath.addLeadingDotSlash(this.pathAlreadyHasExtension);
+      this.fullPath = TemplatePath.addLeadingDotSlash(
+        this.pathAlreadyHasExtension
+      );
     } else {
       this.filename = this.findFileName();
-      this.fullPath = TemplatePath.addLeadingDotSlash(this.dir + "/" + this.filename);
+      this.fullPath = TemplatePath.addLeadingDotSlash(
+        this.dir + "/" + this.filename
+      );
     }
+
+    debug(
+      "Current layout alias --> filename: %o, fullPath: %o for path %o / originalPath %o",
+      this.filename,
+      this.fullPath,
+      this.path,
+      this.originalPath
+    );
   }
 
   addLayoutAlias(from, to) {
@@ -70,9 +93,7 @@ class TemplateLayoutPathResolver {
   getFileName() {
     if (!this.filename) {
       throw new Error(
-        `You’re trying to use a layout that does not exist: ${
-          this.originalPath
-        } (${this.filename})`
+        `You’re trying to use a layout that does not exist: ${this.originalPath} (${this.filename})`
       );
     }
 
@@ -82,9 +103,7 @@ class TemplateLayoutPathResolver {
   getFullPath() {
     if (!this.filename) {
       throw new Error(
-        `You’re trying to use a layout that does not exist: ${
-          this.originalPath
-        } (${this.filename})`
+        `You’re trying to use a layout that does not exist: ${this.originalPath} (${this.filename})`
       );
     }
 
@@ -121,7 +140,9 @@ class TemplateLayoutPathResolver {
       layoutsDir = "_includes";
     }
 
-    return TemplatePath.join(this.inputDir, layoutsDir);
+    let rv = TemplatePath.join(this.inputDir, layoutsDir);
+    debug(`getLayoutsDir() -> ${rv}`);
+    return rv;
   }
 }
 

@@ -19,6 +19,8 @@ const debug = require("debug")("Eleventy:Template");
 const debugDev = require("debug")("Dev:Eleventy:Template");
 const bench = require("./BenchmarkManager").get("Aggregate");
 
+const JSON5 = require("@gerhobbelt/json5");
+
 class Template extends TemplateContent {
   constructor(path, inputDir, outputDir, templateData) {
     debugDev("new Template(%o)", path);
@@ -117,29 +119,41 @@ class Template extends TemplateContent {
     }
 
     let permalink = data[this.config.keys.permalink];
+    //debug(`_getLink() phase 1 : key = ${this.config.keys.permalink},  permalink = ${permalink}, data = ${JSON.stringify(data, null, 2)}, config = ${JSON.stringify(this.config, null, 2)}`);
+    //if (!permalink) {
+    //  permalink = this.config.permalink;
+    //}
+    //debug(`_getLink() phase 2 : key = ${this.config.keys.permalink},  permalink = ${permalink},\n######### data = ${JSON.stringify(data, null, 2)},\n####### config = ${JSON.stringify(this.config, null, 2)}`);
     if (permalink) {
       permalink = await this.mkString(permalink, data, this);
-      debugDev(`_getLink()::mkString() -> permalink = ${permalink}, extraOutputSubdirectory = ${this.extraOutputSubdirectory}`);
+      debugDev(
+        `_getLink()::mkString() -> permalink = ${permalink}, extraOutputSubdirectory = ${this.extraOutputSubdirectory}`
+      );
       // render variables inside permalink front matter, bypass markdown
       let permalinkValue;
       if (!this.config.dynamicPermalinks || data.dynamicPermalink === false) {
         debugDev("Not using dynamicPermalinks, using %o", permalink);
         permalinkValue = permalink;
       } else {
-        permalinkValue = await super.render(permalink, data, /* bypassMarkdown */ true);
+        permalinkValue = await super.render(
+          permalink,
+          data,
+          /* bypassMarkdown */ true
+        );
         debug(
           "Rendering permalink for %o: %s becomes %o",
           this.inputPath,
           permalink,
           permalinkValue
         );
-        debugDev("Permalink rendered with data: %o", data);
+        //debugDev("Permalink rendered with data: %s", JSON.stringify(data, null, 2));
       }
 
       let perm = new TemplatePermalink(
         permalinkValue,
         this.extraOutputSubdirectory
       );
+      debugDev(`_getLink() -> ${perm}`);
 
       return perm;
     } else if (permalink === false) {
@@ -158,7 +172,7 @@ class Template extends TemplateContent {
   // TODO instead of htmlIOException, do a global search to check if output path = input path and then add extra suffix
   async getOutputLink(data) {
     let link = await this._getLink(data);
-    debugDev(`getOutputLink() -> ${link.toString()}`)
+    debugDev(`getOutputLink() -> ${link.toString()}`);
     return link.toString();
   }
 
@@ -224,7 +238,14 @@ class Template extends TemplateContent {
 
   async getData() {
     if (!this.dataCache) {
-      debugDev("%o getData()", this.inputPath);
+      debugDev(
+        `%o getData() --> getLocalData? templateData = ${JSON.stringify(
+          this.templateData,
+          null,
+          2
+        )}`,
+        this.inputPath
+      );
       let localData = {};
 
       if (this.templateData) {
@@ -236,6 +257,13 @@ class Template extends TemplateContent {
       let layoutKey =
         frontMatterData[this.config.keys.layout] ||
         localData[this.config.keys.layout];
+      debugDev(
+        `TemplateGetData: ${JSON.stringify(
+          { layoutKey: layoutKey || "**NULL**", localData, frontMatterData },
+          null,
+          2
+        )}`
+      );
 
       let mergedLayoutData = {};
       if (layoutKey) {
@@ -257,16 +285,21 @@ class Template extends TemplateContent {
       );
       mergedData = await this.addPageDate(mergedData);
       mergedData = this.addPageData(mergedData);
+      //debug(`%o getData() mergedData: ${JSON.stringify(mergedData, null, 2)}`, this.inputPath);
       debugDev("%o getData() mergedData", this.inputPath);
 
       this.dataCache = mergedData;
     }
 
     // Don’t deep merge pagination data! See https://github.com/11ty/eleventy/issues/147#issuecomment-440802454
-    return Object.assign(
+    let rv = Object.assign(
       TemplateData.mergeDeep(this.config, {}, this.dataCache),
       this.paginationData
     );
+
+    //debug(`#############################################################\ngetData -> ${JSON.stringify(rv, null, 2)}\n###### vs config: ${JSON.stringify(this.config, null, 2)}\n#### vs mergedDeep: ${JSON.stringify(TemplateData.mergeDeep(this.config, {}, this.dataCache), null, 2)}\n#### vs Object.Assign: ${JSON.stringify(Object.assign({}, this.config), null, 2)}`);
+
+    return rv;
   }
 
   async addPageDate(data) {
@@ -304,7 +337,15 @@ class Template extends TemplateContent {
   async renderLayout(tmpl, tmplData) {
     let layoutKey = tmplData[tmpl.config.keys.layout];
     let layout = this.getLayout(layoutKey);
-    debug("%o is using layout %o", this.inputPath, layoutKey);
+    debug(
+      `%o is using layout %o: ${layout}\n-----------> ${JSON.stringify(
+        tmplData,
+        null,
+        2
+      )}`,
+      this.inputPath,
+      layoutKey
+    );
 
     // TODO reuse templateContent from templateMap
     let templateContent = await super.render(
@@ -322,13 +363,17 @@ class Template extends TemplateContent {
   }
 
   async renderContent(str, data, bypassMarkdown) {
+    debug(`renderContent: ${str} with ${JSON.stringify(data, null, 2)}`);
     return super.render(str, data, bypassMarkdown);
   }
 
   // TODO at least some of this isn’t being used in the normal build
   // Render is used for `renderData` and `permalink` but otherwise `renderPageEntry` is being used
   async render(data) {
-    debugDev("%o render()", this.inputPath);
+    debugDev(
+      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n%o render()\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+      this.inputPath
+    );
     if (!data) {
       throw new Error("`data` needs to be passed into render()");
     }
@@ -354,7 +399,7 @@ class Template extends TemplateContent {
   }
 
   async runLinters(str, inputPath, outputPath) {
-    this.linters.forEach(function(linter) {
+    this.linters.forEach(function (linter) {
       // these can be asynchronous but no guarantee of order when they run
       linter.call(this, str, inputPath, outputPath);
     });
@@ -393,7 +438,7 @@ class Template extends TemplateContent {
     } else if (typeof obj === "string") {
       computedData.add(
         parentKey,
-        async innerData => {
+        async (innerData) => {
           return await super.render(obj, innerData, true);
         },
         declaredDependencies
@@ -411,9 +456,9 @@ class Template extends TemplateContent {
       computedData,
       {
         page: {
-          url: async data => await this.getOutputHref(data),
-          outputPath: async data => await this.getOutputPath(data)
-        }
+          url: async (data) => await this.getOutputHref(data),
+          outputPath: async (data) => await this.getOutputPath(data),
+        },
       },
       null,
       ["permalink"]
@@ -455,12 +500,13 @@ class Template extends TemplateContent {
         get templateContent() {
           if (this._templateContent === undefined) {
             // should at least warn here
+            //if (false)
             throw new TemplateContentPrematureUseError(
               `Tried to use templateContent too early (${this.inputPath})`
             );
           }
           return this._templateContent;
-        }
+        },
       });
     } else {
       // needs collections for pagination items
@@ -499,7 +545,7 @@ class Template extends TemplateContent {
               );
             }
             return this._templateContent;
-          }
+          },
         });
       }
     }
@@ -518,6 +564,7 @@ class Template extends TemplateContent {
   }
 
   async _getContent(outputPath, data) {
+    //debug(`!!!!!!!!!!!!!!! _getContent: ${outputPath} with ${JSON5.stringify(data, null, 2, true)}`);
     return await this.render(data);
   }
 
@@ -539,13 +586,13 @@ class Template extends TemplateContent {
 
     let lang = {
       start: "Writing",
-      finished: "written."
+      finished: "written.",
     };
 
     if (!shouldWriteFile) {
       lang = {
         start: "Skipping",
-        finished: "" // not used, promise doesn’t resolve
+        finished: "", // not used, promise doesn’t resolve
       };
     }
 
@@ -569,6 +616,7 @@ class Template extends TemplateContent {
   }
 
   async renderPageEntry(mapEntry, page) {
+    //debug(`renderPageEntry: ${JSON5.stringify({mapEntry, page}, null, 2, true)}`);
     let content;
     let layoutKey = mapEntry.data[this.config.keys.layout];
     if (layoutKey) {
@@ -720,7 +768,7 @@ class Template extends TemplateContent {
     entries.push({
       template: this,
       inputPath: this.inputPath,
-      data: data
+      data: data,
     });
     return entries;
   }
@@ -744,24 +792,23 @@ class Template extends TemplateContent {
   }
 
   // ripped from Engines/JavaScript/_getInstance() and tweaked:
-  // 
+  //
   // String, Buffer, Promise
   // Function, Class
   // Object
   async mkString(mod, data) {
     if (typeof mod === "string" || mod instanceof Buffer) {
       return mod.toString();
-    }
-    else if (mod.then) {
+    } else if (mod.then) {
       debugDev(`mkString with promise: ${mod}`);
       return mod.toString();
     } else if (typeof mod === "function") {
       //debugDev(`mkString with function: ${mod.toString()}`);
       if (mod.prototype && "render" in mod.prototype) {
-        return await (new mod()).render(data, this.config, this);
+        return await new mod().render(data, this.config, this);
       } else {
         return await mod(data, this.config, this);
-      } 
+      }
     } else if ("render" in mod) {
       return await mod.render(data, this.config, this);
     }

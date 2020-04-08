@@ -8,6 +8,8 @@ const config = require("./Config");
 // const debug = require("debug")("Eleventy:TemplateLayout");
 const debugDev = require("debug")("Dev:Eleventy:TemplateLayout");
 
+const JSON5 = require("@gerhobbelt/json5");
+
 class TemplateLayout extends TemplateContent {
   constructor(key, inputDir) {
     // TODO getConfig() is duplicated in TemplateContent (super)
@@ -30,23 +32,35 @@ class TemplateLayout extends TemplateContent {
 
   static getTemplate(key, inputDir, config) {
     let fullKey = TemplateLayout.resolveFullKey(key, inputDir);
+    let rv;
     if (templateCache.has(fullKey)) {
       debugDev("Found %o in TemplateCache", key);
-      return templateCache.get(fullKey);
+      rv = templateCache.get(fullKey);
+    } else {
+      let tmpl = new TemplateLayout(key, inputDir);
+      tmpl.config = config;
+      templateCache.add(fullKey, tmpl);
+
+      rv = tmpl;
+    }
+    debugDev(
+      `getTemplate(key: ${key}, inputDir: ${inputDir}, config: ${config}) -> ${rv}`
+    );
+
+    try {
+      //throw new Error("arg")
+    } catch (ex) {
+      console.error(ex); /* silently crashes... */
     }
 
-    let tmpl = new TemplateLayout(key, inputDir);
-    tmpl.config = config;
-    templateCache.add(fullKey, tmpl);
-
-    return tmpl;
+    return rv;
   }
 
   async getTemplateLayoutMapEntry() {
     return {
       key: this.dataKeyLayoutPath,
       template: this,
-      frontMatterData: await this.getFrontMatterData()
+      frontMatterData: await this.getFrontMatterData(),
     };
   }
 
@@ -89,6 +103,14 @@ class TemplateLayout extends TemplateContent {
 
     // Deep merge of layout front matter
     let data = TemplateData.mergeDeep(this.config, {}, ...dataToMerge);
+    debugDev(
+      `TemplateLayoutGetData -> data BEFORE DELETE: ${JSON5.stringify(
+        data,
+        null,
+        2,
+        true
+      )}\n########### map: ${JSON5.stringify(map, null, 2, true)}`
+    );
     delete data[this.config.keys.layout];
 
     this.layoutChain = layoutChain.reverse();
@@ -97,7 +119,7 @@ class TemplateLayout extends TemplateContent {
   }
 
   async getLayoutChain() {
-    if(!this.layoutChain) {
+    if (!this.layoutChain) {
       await this.getData();
     }
     return this.layoutChain;

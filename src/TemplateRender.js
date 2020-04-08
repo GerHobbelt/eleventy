@@ -2,6 +2,7 @@ const TemplatePath = require("./TemplatePath");
 const TemplateEngineManager = require("./TemplateEngineManager");
 const EleventyBaseError = require("./EleventyBaseError");
 const EleventyExtensionMap = require("./EleventyExtensionMap");
+const config = require("./Config");
 // const debug = require("debug")("Eleventy:TemplateRender");
 
 class TemplateRenderUnknownEngineError extends EleventyBaseError {}
@@ -28,7 +29,7 @@ class TemplateRender {
 
   get config() {
     if (!this._config) {
-      this._config = require("./Config").getConfig();
+      this._config = config.getConfig();
     }
     return this._config;
   }
@@ -53,7 +54,9 @@ class TemplateRender {
     this._engineName = this.extensionMap.getKey(engineNameOrPath);
     if (!this._engineName) {
       throw new TemplateRenderUnknownEngineError(
-        `Unknown engine for ${engineNameOrPath} (supported extensions: ${Object.keys(this.extensionMap.extensionToKeyMap).join(' ')})`
+        `Unknown engine for ${engineNameOrPath} (supported extensions: ${Object.keys(
+          this.extensionMap.extensionToKeyMap
+        ).join(" ")})`
       );
     }
 
@@ -100,10 +103,10 @@ class TemplateRender {
     let usingMarkdown = false;
     (engineName || "")
       .split(",")
-      .map(name => {
+      .map((name) => {
         return name.toLowerCase().trim();
       })
-      .forEach(name => {
+      .forEach((name) => {
         // html is assumed (treated as plaintext by the system)
         if (!name || name === "html") {
           return;

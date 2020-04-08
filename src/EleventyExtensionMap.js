@@ -1,4 +1,5 @@
 const TemplatePath = require("./TemplatePath");
+const config = require("./Config");
 
 class EleventyExtensionMap {
   constructor(formatKeys) {
@@ -8,21 +9,21 @@ class EleventyExtensionMap {
   }
 
   setFormats(formatKeys = []) {
-    this.unfilteredFormatKeys = formatKeys.map(function(key) {
+    this.unfilteredFormatKeys = formatKeys.map(function (key) {
       return key.trim().toLowerCase();
     });
 
-    this.validTemplateLanguageKeys = this.unfilteredFormatKeys.filter(key =>
+    this.validTemplateLanguageKeys = this.unfilteredFormatKeys.filter((key) =>
       this.hasExtension(key)
     );
 
     this.passthroughCopyKeys = this.unfilteredFormatKeys.filter(
-      key => !this.hasExtension(key)
+      (key) => !this.hasExtension(key)
     );
   }
 
   get config() {
-    return this.configOverride || require("./Config").getConfig();
+    return this.configOverride || config.getConfig();
   }
   set config(cfg) {
     this.configOverride = cfg;
@@ -36,8 +37,8 @@ class EleventyExtensionMap {
 
     let files = [];
     this.validTemplateLanguageKeys.forEach(
-      function(key) {
-        this.getExtensionsFromKey(key).forEach(function(extension) {
+      function (key) {
+        this.getExtensionsFromKey(key).forEach(function (extension) {
           files.push((dir ? dir + "/" : "") + path + "." + extension);
         });
       }.bind(this)
@@ -66,9 +67,9 @@ class EleventyExtensionMap {
     let dir = TemplatePath.convertToRecursiveGlobSync(inputDir);
     let globs = [];
     formatKeys.forEach(
-      function(key) {
+      function (key) {
         if (this.hasExtension(key)) {
-          this.getExtensionsFromKey(key).forEach(function(extension) {
+          this.getExtensionsFromKey(key).forEach(function (extension) {
             globs.push(dir + "/*." + extension);
           });
         } else {
@@ -140,7 +141,7 @@ class EleventyExtensionMap {
         njk: "njk",
         liquid: "liquid",
         "11ty.js": "11ty.js",
-        "11ty.cjs": "11ty.js"
+        "11ty.cjs": "11ty.js",
       };
 
       if ("extensionMap" in this.config) {

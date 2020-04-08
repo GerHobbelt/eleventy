@@ -2,6 +2,7 @@ const fastglob = require("fast-glob");
 const fs = require("fs-extra");
 const TemplatePath = require("../TemplatePath");
 const EleventyExtensionMap = require("../EleventyExtensionMap");
+const config = require("../Config");
 const debug = require("debug")("Eleventy:TemplateEngine");
 const aggregateBench = require("../BenchmarkManager").get("Aggregate");
 
@@ -19,7 +20,7 @@ class TemplateEngine {
 
   get config() {
     if (!this._config) {
-      this._config = require("../Config").getConfig();
+      this._config = config.getConfig();
     }
     return this._config;
   }
@@ -64,11 +65,11 @@ class TemplateEngine {
     if (this.includesDir) {
       let bench = aggregateBench.get("Searching the file system");
       bench.before();
-      this.extensions.forEach(function(extension) {
+      this.extensions.forEach(function (extension) {
         partialFiles = partialFiles.concat(
           fastglob.sync(prefix + extension, {
             caseSensitiveMatch: false,
-            dot: true
+            dot: true,
           })
         );
       });
@@ -83,7 +84,7 @@ class TemplateEngine {
         this.includesDir
       );
       let partialPathNoExt = partialPath;
-      this.extensions.forEach(function(extension) {
+      this.extensions.forEach(function (extension) {
         partialPathNoExt = TemplatePath.removeExtension(
           partialPathNoExt,
           "." + extension

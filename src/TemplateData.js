@@ -94,12 +94,14 @@ class TemplateData {
   }
 
   _getGlobalDataGlobByExtension(dir, extension) {
-    return TemplateGlob.normalizePath(
+    let rv = TemplateGlob.normalizePath(
       dir,
       "/",
       this.config.dir.data !== "." ? this.config.dir.data : "",
       `/**/*.${extension}`
     );
+    debug(`_getGlobalDataGlobByExtension() -> ${rv}`);
+    return rv;
   }
 
   async _checkInputDir() {
@@ -153,6 +155,7 @@ class TemplateData {
   async getGlobalDataGlob() {
     let dir = await this.getInputDir();
 
+    debug(`getGlobalDataGlob() -> dir: ${dir}`);
     let extGlob = this.getGlobalDataExtensionPriorities().join("|");
     return [this._getGlobalDataGlobByExtension(dir, "(" + extGlob + ")")];
   }
@@ -185,6 +188,7 @@ class TemplateData {
       dot: true,
     });
     fsBench.after();
+    debug(`getGlobalDataFiles() --> ${paths}`);
 
     // sort paths according to extension priorities
     // here we use reverse ordering, because paths with bigger index in array will override the first ones
@@ -215,12 +219,14 @@ class TemplateData {
   }
 
   async getAllGlobalData() {
+    debug(`getAllGlobalData()`);
     let rawImports = this.getRawImports();
     let globalData = {};
     let files = TemplatePath.addLeadingDotSlashArray(
       await this.getGlobalDataFiles()
     );
 
+    debug(`getAllGlobalData() -> files: ${files}`);
     let dataFileConflicts = {};
 
     for (let j = 0, k = files.length; j < k; j++) {
@@ -251,12 +257,14 @@ class TemplateData {
   async getData() {
     let rawImports = this.getRawImports();
 
+    //debug(`getData() : raw imports = ${JSON.stringify(rawImports, null, 2)}`);
     if (!this.globalData) {
       let globalJson = await this.getAllGlobalData();
 
       // OK: Shallow merge when combining rawImports (pkg) with global data files
       this.globalData = Object.assign({}, globalJson, rawImports);
     }
+    //debug(`getData() : global data = ${JSON.stringify(this.globalData, null, 2)}`);
 
     return this.globalData;
   }
@@ -284,7 +292,7 @@ class TemplateData {
 
     // OK-ish: shallow merge when combining template/data dir files with global data files
     let localData = Object.assign({}, globalData, importedData);
-    // debug("`getLocalData` for %o: %O", templatePath, localData);
+    debug("`getLocalData` for %o: %O", templatePath, localData);
     return localData;
   }
 
@@ -432,16 +440,28 @@ class TemplateData {
   }
 
   async getLocalDataPaths(templatePath) {
+    console.trace(`getLocalDataPaths(${templatePath})`);
     let paths = [];
     let parsed = parsePath(templatePath);
     let inputDir = TemplatePath.addLeadingDotSlash(
       TemplatePath.normalize(this.inputDir)
     );
 
-    debugDev("getLocalDataPaths(%o)", templatePath);
+    debugDev(
+      `getLocalDataPaths(%o) --> parsed: ${JSON.stringify(parsed, null, 2)}`,
+      templatePath
+    );
     debugDev("parsed.dir: %o", parsed.dir);
 
     let userExtensions = this.getUserDataExtensions();
+    debugDev(
+      `getLocalDataPaths(%o) --> userExtensions: ${JSON.stringify(
+        userExtensions,
+        null,
+        2
+      )}`,
+      templatePath
+    );
 
     if (parsed.dir) {
       let fileNameNoExt = this.extensionMap.removeTemplateExtension(

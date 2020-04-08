@@ -102,7 +102,7 @@ class TemplateContent {
       this.frontMatter = {
         data: {},
         content: "",
-        excerpt: ""
+        excerpt: "",
       };
     }
   }
@@ -141,7 +141,13 @@ class TemplateContent {
       await this.read();
     }
 
-    let extraData = await this.engine.getExtraDataFromFile(this.inputPath, this);
+    debugDev(
+      `getFrontMatterData(): this = ${this}, inputPath = ${this.inputPath}`
+    );
+    let extraData = await this.engine.getExtraDataFromFile(
+      this.inputPath,
+      this
+    );
     let data = TemplateData.mergeDeep({}, this.frontMatter.data, extraData);
     return TemplateData.cleanupData(data);
   }
@@ -183,7 +189,11 @@ class TemplateContent {
       debugDev("%o getCompiledTemplate function created", this.inputPath);
       return fn;
     } catch (e) {
-      debug(`Having trouble compiling template ${this.inputPath}: %O --> %O`, str, e);
+      debug(
+        `Having trouble compiling template ${this.inputPath}: %O --> %O`,
+        str,
+        e
+      );
       throw new TemplateContentCompileError(
         `Having trouble compiling template ${this.inputPath}`,
         e
