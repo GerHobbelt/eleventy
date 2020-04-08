@@ -416,6 +416,7 @@ class TemplateData {
     this._pushExtensionsToPaths(paths, base + dataSuffix, extensions);
 
     // top level
+    paths.push(base + ".js");
     paths.push(base + ".json");
     this._pushExtensionsToPaths(paths, base, extensions);
   }
@@ -470,7 +471,7 @@ class TemplateData {
       }
     }
 
-    debug("getLocalDataPaths(%o): %o", templatePath, paths);
+    debug("getLocalDataPaths(%o): %s", templatePath, JSON.stringify(paths, null, 2));
     return lodashUniq(paths).reverse();
   }
 
