@@ -379,6 +379,7 @@ class TemplateMap {
         }
       } catch (e) {
         if (EleventyErrorUtil.isPrematureTemplateContentError(e)) {
+          debug("TemplateMap error:", e);
           throw new UsingCircularTemplateContentReferenceError(
             `${map.inputPath} contains a circular reference (using collections) to its own templateContent.`
           );
