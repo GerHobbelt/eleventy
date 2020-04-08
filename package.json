@@ -1,6 +1,6 @@
 {
-  "name": "@11ty/eleventy",
-  "version": "0.11.0-beta.3",
+  "name": "@gerhobbelt/eleventy",
+  "version": "0.11.0-4",
   "description": "Transform a directory of templates into HTML.",
   "publishConfig": {
     "access": "public"
@@ -41,6 +41,7 @@
     "eleventy": "./cmd.js"
   },
   "scripts": {
+    "pub": "npm publish --access public",
     "default": "npm run test",
     "doc": "jsdoc -c .jsdoc.conf.json -d ./api-docs -p ./package.json -R README.md -t ./node_modules/ink-docstrap/template -r src/*.js",
     "test": "npx ava --verbose",
