@@ -15,12 +15,12 @@ Works with HTML, Markdown, Liquid, Nunjucks, Handlebars, Mustache, EJS, Haml, Pu
 - [11ty on GitHub](https://github.com/11ty)
 - [11ty/eleventy on Travis CI](https://travis-ci.org/11ty/eleventy)
 
-[![npm Version](https://img.shields.io/npm/v/@11ty/eleventy.svg?style=for-the-badge)](https://www.npmjs.com/package/@11ty/eleventy) [![GitHub issues](https://img.shields.io/github/issues/11ty/eleventy.svg?style=for-the-badge)](https://github.com/11ty/eleventy/issues) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=for-the-badge)](https://github.com/prettier/prettier) [![npm Downloads](https://img.shields.io/npm/dt/@11ty/eleventy.svg?style=for-the-badge)](https://www.npmjs.com/package/@11ty/eleventy)
+[![npm Version](https://img.shields.io/npm/v/@gerhobbelt/eleventy.svg?style=for-the-badge)](https://www.npmjs.com/package/@gerhobbelt/eleventy) [![GitHub issues](https://img.shields.io/github/issues/11ty/eleventy.svg?style=for-the-badge)](https://github.com/11ty/eleventy/issues) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=for-the-badge)](https://github.com/prettier/prettier) [![npm Downloads](https://img.shields.io/npm/dt/@gerhobbelt/eleventy.svg?style=for-the-badge)](https://www.npmjs.com/package/@gerhobbelt/eleventy)
 
 ## Installation
 
 ```
-npm install @11ty/eleventy --save-dev
+npm install @gerhobbelt/eleventy --save-dev
 ```
 
 Read our [Getting Started guide](https://www.11ty.io/docs/getting-started/).

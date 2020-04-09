@@ -17,7 +17,7 @@ const bench = require("./BenchmarkManager");
 const debug = require("debug")("Eleventy");
 
 /**
- * @module @11ty/eleventy/Eleventy
+ * @module @gerhobbelt/eleventy/Eleventy
  */
 
 /**

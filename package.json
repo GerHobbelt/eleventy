@@ -83,7 +83,7 @@
     "js-yaml": "^3.13.1",
     "jsdoc": "3.6.4",
     "lint-staged": "^10.1.2",
-    "markdown-it-emoji": "^1.4.0",
+    "@gerhobbelt/markdown-it-emoji": "1.2.1-5",
     "node-sass": "^4.13.1",
     "nyc": "^15.0.1",
     "prettier": "^2.0.4",
@@ -110,7 +110,7 @@
     "liquidjs": "^9.11.10",
     "lodash": "^4.17.15",
     "luxon": "^1.23.0",
-    "markdown-it": "^10.0.0",
+    "@gerhobbelt/markdown-it": "10.0.0-32",
     "minimist": "^1.2.5",
     "moo": "^0.5.1",
     "multimatch": "^4.0.0",
@@ -127,7 +127,7 @@
     "time-require": "^0.1.2",
     "valid-url": "^1.0.9"
   },
-  "husky": {
+  "husky-xxx": {
     "hooks": {
       "pre-commit": "npm run lint-staged",
       "pre-push": "npm run test"

@@ -1,6 +1,6 @@
 import test from "ava";
 import TemplateRender from "../src/TemplateRender";
-import md from "markdown-it";
+import md from "@gerhobbelt/markdown-it";
 
 const createTestMarkdownPlugin = () => {
   const plugin = md => {

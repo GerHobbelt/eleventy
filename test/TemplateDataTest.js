@@ -20,7 +20,7 @@ test("getData()", async (t) => {
   t.is(data.globalData.datakey1, "datavalue1", "simple data value");
   t.is(
     data.globalData.datakey2,
-    "@11ty/eleventy",
+    "@gerhobbelt/eleventy",
     `variables, resolve ${config.keys.package} to its value.`
   );
 
@@ -42,13 +42,13 @@ test("Add local data", async (t) => {
   let data = await dataObj.getData();
 
   t.is(data.globalData.datakey1, "datavalue1");
-  t.is(data.globalData.datakey2, "@11ty/eleventy");
+  t.is(data.globalData.datakey2, "@gerhobbelt/eleventy");
 
   let withLocalData = await dataObj.getLocalData(
     "./test/stubs/component/component.njk"
   );
   t.is(withLocalData.globalData.datakey1, "datavalue1");
-  t.is(withLocalData.globalData.datakey2, "@11ty/eleventy");
+  t.is(withLocalData.globalData.datakey2, "@gerhobbelt/eleventy");
   t.is(withLocalData.localdatakey1, "localdatavalue1");
 
   // from the js file
@@ -80,7 +80,7 @@ test("addLocalData() doesn’t exist but doesn’t fail (template file does exis
     "./test/stubs/datafiledoesnotexist/template.njk"
   );
   t.is(withLocalData.globalData.datakey1, "datavalue1");
-  t.is(withLocalData.globalData.datakey2, "@11ty/eleventy");
+  t.is(withLocalData.globalData.datakey2, "@gerhobbelt/eleventy");
   t.deepEqual(Object.keys(withLocalData), beforeDataKeyCount);
 });
 
@@ -93,7 +93,7 @@ test("addLocalData() doesn’t exist but doesn’t fail (template file does not 
     "./test/stubs/datafiledoesnotexist/templatedoesnotexist.njk"
   );
   t.is(withLocalData.globalData.datakey1, "datavalue1");
-  t.is(withLocalData.globalData.datakey2, "@11ty/eleventy");
+  t.is(withLocalData.globalData.datakey2, "@gerhobbelt/eleventy");
   t.deepEqual(Object.keys(withLocalData), beforeDataKeyCount);
 });
 
@@ -340,7 +340,7 @@ test("getRawImports", async (t) => {
   let dataObj = new TemplateData("test/stubs");
   let data = dataObj.getRawImports();
 
-  t.is(data.pkg.name, "@11ty/eleventy");
+  t.is(data.pkg.name, "@gerhobbelt/eleventy");
 });
 
 test("getTemplateDataFileGlob", async (t) => {

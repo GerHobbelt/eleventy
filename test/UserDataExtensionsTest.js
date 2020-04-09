@@ -17,11 +17,11 @@ test("Local data", async t => {
 
   // YAML GLOBAL DATA
   t.is(data.globalData3.datakey1, "datavalue3");
-  t.is(data.globalData3.datakey2, "@11ty/eleventy--yaml");
+  t.is(data.globalData3.datakey2, "@gerhobbelt/eleventy--yaml");
 
   // NOSJ (JSON) GLOBAL DATA
   t.is(data.globalData4.datakey1, "datavalue4");
-  t.is(data.globalData4.datakey2, "@11ty/eleventy--nosj");
+  t.is(data.globalData4.datakey2, "@gerhobbelt/eleventy--nosj");
 
   let withLocalData = await dataObj.getLocalData(
     "./test/stubs-630/component-yaml/component.njk"
@@ -90,15 +90,15 @@ test("Global data", async t => {
 
   // JSON GLOBAL DATA
   t.is(data.globalData2.datakey1, "datavalue2");
-  t.is(data.globalData2.datakey2, "@11ty/eleventy--json");
+  t.is(data.globalData2.datakey2, "@gerhobbelt/eleventy--json");
 
   // YAML GLOBAL DATA
   t.is(data.globalData3.datakey1, "datavalue3");
-  t.is(data.globalData3.datakey2, "@11ty/eleventy--yaml");
+  t.is(data.globalData3.datakey2, "@gerhobbelt/eleventy--yaml");
 
   // NOSJ (JSON) GLOBAL DATA
   t.is(data.globalData4.datakey1, "datavalue4");
-  t.is(data.globalData4.datakey2, "@11ty/eleventy--nosj");
+  t.is(data.globalData4.datakey2, "@gerhobbelt/eleventy--nosj");
 
   t.is(data.subdir.globalDataSubdir.keyyaml, "yaml");
 });

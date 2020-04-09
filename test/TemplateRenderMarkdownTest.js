@@ -1,8 +1,8 @@
 import test from "ava";
 import TemplateRender from "../src/TemplateRender";
 import EleventyExtensionMap from "../src/EleventyExtensionMap";
-import md from "markdown-it";
-import mdEmoji from "markdown-it-emoji";
+import md from "@gerhobbelt/markdown-it";
+import mdEmoji from "@gerhobbelt/markdown-it-emoji";
 import UserConfig from "../src/UserConfig";
 import eleventySyntaxHighlightPlugin from "@11ty/eleventy-plugin-syntaxhighlight";
 

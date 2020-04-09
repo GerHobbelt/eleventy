@@ -26,7 +26,7 @@ If applicable, add screenshots to help explain your problem.
 **Environment:**
 
 - OS and Version: [e.g. Windows/Mac/Linux]
-- Eleventy Version [via `eleventy --version` or `npx @11ty/eleventy --version`]
+- Eleventy Version [via `eleventy --version` or `npx @gerhobbelt/eleventy --version`]
 
 **Additional context**
 Add any other context about the problem here.

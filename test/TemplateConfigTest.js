@@ -1,5 +1,5 @@
 import test from "ava";
-import md from "markdown-it";
+import md from "@gerhobbelt/markdown-it";
 import TemplateConfig from "../src/TemplateConfig";
 import eleventyConfig from "../src/EleventyConfig";
 

@@ -1,4 +1,4 @@
-const markdownIt = require("markdown-it");
+const markdownIt = require("@gerhobbelt/markdown-it");
 const TemplateEngine = require("./TemplateEngine");
 // const debug = require("debug")("Eleventy:Markdown");
 
