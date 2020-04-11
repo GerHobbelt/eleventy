@@ -18,8 +18,7 @@ class TemplateWriter {
     inputPath,
     outputDir,
     templateFormats, // TODO remove this, see `get eleventyFiles` first
-    templateData,
-    isPassthroughAll
+    templateData
   ) {
     this.config = config.getConfig();
     this.input = inputPath;
@@ -34,9 +33,6 @@ class TemplateWriter {
     this.isDryRun = false;
     this.writeCount = 0;
     this.skippedCount = 0;
-
-    // TODO can we get rid of this? It’s only used for tests in `get eleventyFiles``
-    this.passthroughAll = isPassthroughAll;
   }
 
   get templateFormats() {
@@ -83,18 +79,6 @@ class TemplateWriter {
   }
 
   get eleventyFiles() {
-    // usually Eleventy.js will setEleventyFiles with the EleventyFiles manager
-    if (!this._eleventyFiles) {
-      // if not, we can create one (used only by tests)
-      this._eleventyFiles = new EleventyFiles(
-        this.input,
-        this.outputDir,
-        this.templateFormats,
-        this.passthroughAll
-      );
-
-      this._eleventyFiles.init();
-    }
 
     return this._eleventyFiles;
   }

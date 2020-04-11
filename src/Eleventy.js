@@ -312,8 +312,7 @@ class Eleventy {
       this.input,
       this.outputDir,
       formats,
-      this.templateData,
-      this.isPassthroughAll
+      this.templateData
     );
 
     this.writer.extensionMap = this.extensionMap;

@@ -13,7 +13,7 @@ const debug = require("debug")("Eleventy:EleventyFiles");
 const aggregateBench = require("./BenchmarkManager").get("Aggregate");
 
 class EleventyFiles {
-  constructor(input, outputDir, formats, passthroughAll) {
+  constructor(input, outputDir, formats, isPassthroughAll) {
     this.config = config.getConfig();
     this.input = input;
     this.inputDir = TemplatePath.getDir(this.input);
@@ -21,7 +21,7 @@ class EleventyFiles {
 
     this.initConfig();
 
-    this.passthroughAll = !!passthroughAll;
+    this.isPassthroughAll = !!isPassthroughAll;
 
     this.formats = formats;
   }
@@ -106,10 +106,6 @@ class EleventyFiles {
     return this._extensionMap;
   }
 
-  setPassthroughAll(passthroughAll) {
-    this.passthroughAll = !!passthroughAll;
-  }
-
   initPassthroughManager() {
     let mgr = new TemplatePassthroughManager();
     mgr.setInputDir(this.inputDir);
@@ -147,7 +143,7 @@ class EleventyFiles {
   setupGlobs() {
     this.fileIgnores = this.getIgnores();
 
-    if (this.passthroughAll) {
+    if (this.isPassthroughAll) {
       this.templateGlobsWithIgnoresFromFiles = TemplateGlob.map([
         TemplateGlob.normalizePath(this.input, "/**")
       ]).concat(this.fileIgnores);

@@ -62,6 +62,8 @@ class TemplateConfig {
      * @member {module:11ty/eleventy/TemplateConfig~TemplateConfig~config} - tbd.
      */
     this.config = this.mergeConfig(this.localProjectConfigPath);
+
+    this.checkPathsAreAllowed();
   }
 
   /**
@@ -232,6 +234,18 @@ class TemplateConfig {
     debug("Current configuration: %o", merged);
 
     return merged;
+  }
+
+  checkPathsAreAllowed() {
+    ["includes", "data"].forEach(eleventyDirName => {
+      const eleventyDirectory = this.config.dir[eleventyDirName];
+
+      if (!TemplatePath.isInsideWorkingDir(eleventyDirectory)) {
+        throw new EleventyConfigError(
+          `Error in your Eleventy config file: The configured ${eleventyDirName} directory (${eleventyDirectory}) is outside of Eleventy’s working directory.`
+        );
+      }
+    });
   }
 }
 

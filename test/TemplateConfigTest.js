@@ -398,3 +398,21 @@ test(".addWatchTarget adds a watch target", t => {
   let cfg = templateCfg.getConfig();
   t.deepEqual(cfg.additionalWatchTargets, ["/testdirectory/"]);
 });
+
+test("Properly throws error on illegal includes directory", t => {
+  t.throws(function() {
+    new TemplateConfig(
+      require("../config.js"),
+      "./test/stubs/config-illegal-includes-dir.js"
+    );
+  });
+});
+
+test("Properly throws error on illegal data directory", t => {
+  t.throws(function() {
+    new TemplateConfig(
+      require("../config.js"),
+      "./test/stubs/config-illegal-data-dir.js"
+    );
+  });
+});
