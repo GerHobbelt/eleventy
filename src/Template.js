@@ -433,8 +433,19 @@ class Template extends TemplateContent {
     }
   }
 
+  cacheTemplates(pageUrl, templates) {
+    if (!this.templates) {
+      this.templates = {};
+    }
+    this.templates[pageUrl] = templates;
+  }
+
   async getTemplates(data) {
-    // TODO cache this
+    // for caching, we can safely assume that data.page.url is unique for each data input
+    if (this.templates && (data.page.url in this.templates)) {
+      return this.templates[data.page.url];
+    }
+    
     let results = [];
 
     if (!Pagination.hasPagination(data)) {
@@ -503,6 +514,8 @@ class Template extends TemplateContent {
         });
       }
     }
+
+    this.cacheTemplates(data.page.url, results);
 
     return results;
   }
