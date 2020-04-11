@@ -240,6 +240,7 @@ class TemplateWriter {
 
   async write() {
     let paths = await this._getAllPaths();
+    console.log('Writer.write: PATHS = ', paths);
     let promises = [];
     promises.push(this.writePassthroughCopy(paths));
 
