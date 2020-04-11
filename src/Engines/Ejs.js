@@ -31,7 +31,8 @@ class Ejs extends TemplateEngine {
       {
         root: "./" + includesDir,
         compileDebug: true,
-        filename: "./" + includesDir
+        filename: "./" + includesDir,
+        client: false,
       },
       this.ejsOptions || {}
     );
