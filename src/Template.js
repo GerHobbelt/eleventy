@@ -391,7 +391,7 @@ class Template extends TemplateContent {
         );
       }
     } else if (typeof obj === "string") {
-      computedData.add(
+      computedData.addTemplateString(
         parentKey,
         async innerData => {
           return await super.render(obj, innerData, true);
@@ -399,6 +399,7 @@ class Template extends TemplateContent {
         declaredDependencies
       );
     } else {
+      // Numbers, booleans, etc
       computedData.add(parentKey, obj, declaredDependencies);
     }
   }
@@ -407,17 +408,16 @@ class Template extends TemplateContent {
     // will _not_ consume renderData
     let computedData = new ComputedData();
     // this allows computed entries to use page.url or page.outputPath and they’ll be resolved properly
-    this._addComputedEntry(
-      computedData,
-      {
-        page: {
-          url: async data => await this.getOutputHref(data),
-          outputPath: async data => await this.getOutputPath(data)
-        }
-      },
-      null,
+    computedData.addTemplateString(
+      "page.url",
+      async data => await this.getOutputHref(data),
       ["permalink"]
-    ); // declared dependency
+    );
+    computedData.addTemplateString(
+      "page.outputPath",
+      async data => await this.getOutputPath(data),
+      ["permalink"]
+    );
 
     if (this.config.keys.computed in data) {
       this._addComputedEntry(computedData, data[this.config.keys.computed]);

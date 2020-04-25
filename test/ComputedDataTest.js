@@ -1,60 +1,10 @@
 import test from "ava";
 import ComputedData from "../src/ComputedData";
 
-test("Get fake proxy data", t => {
-  let cd = new ComputedData();
-  cd.add("key1", () => {});
-  cd.add("key2", () => {});
-  t.deepEqual(cd.getProxyData({}), {
-    key1: `${cd.prefix}key1${cd.suffix}`,
-    key2: `${cd.prefix}key2${cd.suffix}`
-  });
-});
-
-test("Get nested fake proxy data", t => {
-  let cd = new ComputedData();
-  cd.add("key1.nested", () => {});
-  cd.add("key2", () => {});
-  t.deepEqual(cd.getProxyData({}), {
-    key1: {
-      nested: `${cd.prefix}key1.nested${cd.suffix}`
-    },
-    key2: `${cd.prefix}key2${cd.suffix}`
-  });
-});
-
-test("Get vars from output", t => {
-  let cd = new ComputedData();
-  t.deepEqual(cd.findVarsInOutput(""), []);
-  t.deepEqual(cd.findVarsInOutput("slkdjfkljdsf"), []);
-  t.deepEqual(
-    cd.findVarsInOutput(`slkdjfkljdsf${cd.prefix}${cd.suffix}sldkjflkds`),
-    []
-  );
-  t.deepEqual(
-    cd.findVarsInOutput(
-      `slkdjfkljdsf${cd.prefix}firstVar${cd.suffix}sldkjflkds`
-    ),
-    ["firstVar"]
-  );
-  t.deepEqual(
-    cd.findVarsInOutput(
-      `slkdjfkljdsf${cd.prefix}firstVar${cd.suffix}test${cd.prefix}firstVar${cd.suffix}sldkjflkds`
-    ),
-    ["firstVar"]
-  );
-  t.deepEqual(
-    cd.findVarsInOutput(
-      `slkdjfkljdsf${cd.prefix}firstVar${cd.suffix}test${cd.prefix}secondVar${cd.suffix}sldkjflkds`
-    ),
-    ["firstVar", "secondVar"]
-  );
-});
-
 test("Basic get/set", async t => {
   let cd = new ComputedData();
 
-  cd.add("keystr", `this is a str`);
+  cd.add("keystr", "this is a str");
   cd.add("key1", data => {
     return `this is a test ${data.key2}${data.keystr}`;
   });
@@ -65,6 +15,46 @@ test("Basic get/set", async t => {
   await cd.setupData(data);
 
   t.is(data.key1, "this is a test inject methis is a str");
+  t.is(data.key2, "inject me");
+  t.is(data.keystr, "this is a str");
+});
+
+test("Basic get/set (reverse order of adds)", async t => {
+  let cd = new ComputedData();
+
+  cd.add("key1", data => {
+    return `this is a test ${data.key2}${data.keystr}`;
+  });
+  cd.add("keystr", "this is a str");
+
+  let data = {
+    key2: "inject me"
+  };
+  await cd.setupData(data);
+
+  t.is(data.key1, "this is a test inject methis is a str");
+  t.is(data.key2, "inject me");
+  t.is(data.keystr, "this is a str");
+});
+
+test("Basic get/set (reverse order of adds) nested two deep", async t => {
+  let cd = new ComputedData();
+
+  cd.add("key1.key3", data => {
+    return `this is a test ${data.key2}${data.keystr}`;
+  });
+  cd.add("key1.key4", data => {
+    return `this is a test ${data.key1.key3}`;
+  });
+  cd.add("keystr", "this is a str");
+
+  let data = {
+    key2: "inject me"
+  };
+  await cd.setupData(data);
+
+  t.is(data.key1.key3, "this is a test inject methis is a str");
+  t.is(data.key1.key4, "this is a test this is a test inject methis is a str");
   t.is(data.key2, "inject me");
   t.is(data.keystr, "this is a str");
 });
@@ -178,4 +168,70 @@ test("Basic get/set nested deeper", async t => {
   t.is(data.key1.nested.deeperC.wow, "hi");
   t.is(data.key1.nonComputed, "hi");
   t.is(data.key2, "hi");
+});
+
+test("template string versus function types", async t => {
+  let cd = new ComputedData();
+
+  cd.add("key1.nested.deeperA", data => {
+    return `${data.key2}`;
+  });
+  cd.add("key2", () => "hi");
+
+  let data = {
+    key1: {
+      nonComputed: "hi"
+    },
+    key2: "inject me"
+  };
+  await cd.setupData(data);
+
+  t.deepEqual(data.key1, {
+    nonComputed: "hi",
+    nested: {
+      deeperA: "hi"
+    }
+  });
+});
+
+test("Basic get/set with template string", async t => {
+  let cd = new ComputedData();
+
+  cd.addTemplateString("keystr", "this is a str");
+  cd.addTemplateString("key1", data => {
+    return `this is a test ${data.key2}${data.keystr}`;
+  });
+
+  let data = {
+    key2: "inject me"
+  };
+  await cd.setupData(data);
+
+  t.is(data.key1, "this is a test inject methis is a str");
+  t.is(data.key2, "inject me");
+  t.is(data.keystr, "this is a str");
+});
+
+test("Basic get/set using array data", async t => {
+  t.plan(5);
+  let cd = new ComputedData();
+
+  cd.add("keystr", "this is a str");
+  cd.add("key1", data => {
+    t.is(Array.isArray(data.arr), true);
+    return `this is a test ${data.arr[0]}${data.keystr}`;
+  });
+
+  let data = {
+    arr: ["inject me"],
+    collections: {
+      first: [],
+      second: []
+    }
+  };
+  await cd.setupData(data);
+
+  t.is(data.key1, "this is a test inject methis is a str");
+  t.is(data.arr[0], "inject me");
+  t.is(data.keystr, "this is a str");
 });
