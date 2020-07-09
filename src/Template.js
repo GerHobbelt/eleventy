@@ -357,7 +357,7 @@ class Template extends TemplateContent {
   }
 
   async runLinters(str, inputPath, outputPath) {
-    this.linters.forEach(function(linter) {
+    this.linters.forEach(function (linter) {
       // these can be asynchronous but no guarantee of order when they run
       linter.call(this, str, inputPath, outputPath);
     });
@@ -396,7 +396,7 @@ class Template extends TemplateContent {
     } else if (typeof obj === "string") {
       computedData.addTemplateString(
         parentKey,
-        async innerData => {
+        async (innerData) => {
           return await super.render(obj, innerData, true);
         },
         declaredDependencies
@@ -410,16 +410,24 @@ class Template extends TemplateContent {
   async addComputedData(data) {
     // will _not_ consume renderData
     this.computedData = new ComputedData();
+
+    // Add permalink (outside of eleventyComputed) to computed graph
+    // if(data.permalink) {
+    //   this._addComputedEntry(this.computedData, data.permalink, "permalink");
+    // }
+
+    // Note that `permalink` is only a thing that gets consumed—it does not go directly into generated data
     // this allows computed entries to use page.url or page.outputPath and they’ll be resolved properly
     this.computedData.addTemplateString(
       "page.url",
-      async data => await this.getOutputHref(data),
-      ["permalink"]
+      async (data) => await this.getOutputHref(data),
+      data.permalink ? ["permalink"] : undefined
     );
+
     this.computedData.addTemplateString(
       "page.outputPath",
-      async data => await this.getOutputPath(data),
-      ["permalink"]
+      async (data) => await this.getOutputPath(data),
+      data.permalink ? ["permalink"] : undefined
     );
 
     if (this.config.keys.computed in data) {
@@ -429,13 +437,18 @@ class Template extends TemplateContent {
       );
     }
 
-    // limited run of computed data, do most of it later when collections are available.
-    // await this.computedData.setupData(data);
-    await this.computedData.setupData(data, function(entry) {
-      return !this.isDependsOnStartsWith(entry, "collections.");
+    // limited run of computed data—save the stuff that relies on collections for later.
+    debug("First round of computed data for %o", this.inputPath);
+    await this.computedData.setupData(data, function (entry) {
+      return !this.isUsesStartsWith(entry, "collections.");
+
+      // TODO possible improvement here is to only process page.url, page.outputPath, permalink
+      // instead of only punting on things that rely on collections.
+      // let firstPhaseComputedData = ["page.url", "page.outputPath", ...this.getOrderFor("page.url"), ...this.getOrderFor("page.outputPath")];
+      // return firstPhaseComputedData.indexOf(entry) > -1;
     });
 
-    // deprecated, use eleventyComputed instead.
+    // Deprecated, use eleventyComputed instead.
     if ("renderData" in data) {
       data.renderData = await this.mapDataAsRenderedTemplates(
         data.renderData,
@@ -445,7 +458,8 @@ class Template extends TemplateContent {
   }
 
   async resolveRemainingComputedData(data) {
-    await this.computedData.setupData(data);
+    debug("Second round of computed data for %o", this.inputPath);
+    await this.computedData.processRemainingData(data);
   }
 
   cacheTemplates(pageUrl, templates) {
@@ -486,7 +500,7 @@ class Template extends TemplateContent {
             );
           }
           return this._templateContent;
-        }
+        },
       });
     } else {
       // needs collections for pagination items
@@ -498,12 +512,12 @@ class Template extends TemplateContent {
       for (let page of pageTemplates) {
         let pageData = Object.assign({}, await page.getData());
 
+        await page.addComputedData(pageData);
+
         // Issue #115
         if (data.collections) {
           pageData.collections = data.collections;
         }
-
-        await page.addComputedData(pageData);
 
         results.push({
           template: page,
@@ -525,7 +539,7 @@ class Template extends TemplateContent {
               );
             }
             return this._templateContent;
-          }
+          },
         });
       }
     }
@@ -567,13 +581,13 @@ class Template extends TemplateContent {
 
     let lang = {
       start: "Writing",
-      finished: "written."
+      finished: "written.",
     };
 
     if (!shouldWriteFile) {
       lang = {
         start: "Skipping",
-        finished: "" // not used, promise doesn’t resolve
+        finished: "", // not used, promise doesn’t resolve
       };
     }
 
@@ -738,7 +752,7 @@ class Template extends TemplateContent {
     entries.push({
       template: this,
       inputPath: this.inputPath,
-      data: data
+      data: data,
     });
     return entries;
   }

@@ -48,7 +48,7 @@ class ComputedData {
         let varsUsed = await proxy.findVarsUsed(computed, data);
 
         debug("%o accesses %o variables", key, varsUsed);
-        let filteredVarsUsed = varsUsed.filter(varUsed => {
+        let filteredVarsUsed = varsUsed.filter((varUsed) => {
           return (
             (varUsed !== key && this.computedKeys.has(varUsed)) ||
             varUsed.startsWith("collections.")
@@ -64,9 +64,9 @@ class ComputedData {
 
     for (let key of order) {
       let computed = lodashGet(this.computed, key);
-
       if (typeof computed === "function") {
-        lodashSet(data, key, await computed(data));
+        let ret = await computed(data);
+        lodashSet(data, key, ret);
       } else if (computed !== undefined) {
         lodashSet(data, key, computed);
       }
@@ -76,11 +76,16 @@ class ComputedData {
   async setupData(data, orderFilter) {
     await this.resolveVarOrder(data);
 
+    await this.processRemainingData(data, orderFilter);
+  }
+
+  async processRemainingData(data, orderFilter) {
     // process all variables
     let order = this.queue.getOrder();
     if (orderFilter && typeof orderFilter === "function") {
       order = order.filter(orderFilter.bind(this.queue));
     }
+
     await this._setupDataEntry(data, order);
     this.queue.markComputed(order);
   }
