@@ -20,7 +20,7 @@ const debugDev = require("debug")("Dev:Eleventy:Template");
 const bench = require("./BenchmarkManager").get("Aggregate");
 
 class Template extends TemplateContent {
-  constructor(path, inputDir, outputDir, templateData) {
+  constructor(path, inputDir, outputDir, templateData, extensionMap) {
     debugDev("new Template(%o)", path);
     super(path, inputDir);
 
@@ -34,6 +34,8 @@ class Template extends TemplateContent {
     } else {
       this.outputDir = false;
     }
+
+    this.extensionMap = extensionMap;
 
     this.linters = [];
     this.transforms = [];
@@ -84,7 +86,8 @@ class Template extends TemplateContent {
       this._layout = TemplateLayout.getTemplate(
         layoutKey,
         this.getInputDir(),
-        this.config
+        this.config,
+        this.extensionMap
       );
     }
     return this._layout;
@@ -404,25 +407,33 @@ class Template extends TemplateContent {
     }
   }
 
-  async augmentFinalData(data) {
+  async addComputedData(data) {
     // will _not_ consume renderData
-    let computedData = new ComputedData();
+    this.computedData = new ComputedData();
     // this allows computed entries to use page.url or page.outputPath and they’ll be resolved properly
-    computedData.addTemplateString(
+    this.computedData.addTemplateString(
       "page.url",
       async data => await this.getOutputHref(data),
       ["permalink"]
     );
-    computedData.addTemplateString(
+    this.computedData.addTemplateString(
       "page.outputPath",
       async data => await this.getOutputPath(data),
       ["permalink"]
     );
 
     if (this.config.keys.computed in data) {
-      this._addComputedEntry(computedData, data[this.config.keys.computed]);
+      this._addComputedEntry(
+        this.computedData,
+        data[this.config.keys.computed]
+      );
     }
-    await computedData.setupData(data);
+
+    // limited run of computed data, do most of it later when collections are available.
+    // await this.computedData.setupData(data);
+    await this.computedData.setupData(data, function(entry) {
+      return !this.isDependsOnStartsWith(entry, "collections.");
+    });
 
     // deprecated, use eleventyComputed instead.
     if ("renderData" in data) {
@@ -431,6 +442,10 @@ class Template extends TemplateContent {
         data
       );
     }
+  }
+
+  async resolveRemainingComputedData(data) {
+    await this.computedData.setupData(data);
   }
 
   cacheTemplates(pageUrl, templates) {
@@ -449,7 +464,7 @@ class Template extends TemplateContent {
     let results = [];
 
     if (!Pagination.hasPagination(data)) {
-      await this.augmentFinalData(data);
+      await this.addComputedData(data);
 
       results.push({
         template: this,
@@ -478,9 +493,9 @@ class Template extends TemplateContent {
       // but individual pagination entries won’t be part of a collection
       this.paging = new Pagination(data);
       this.paging.setTemplate(this);
-      let templates = await this.paging.getPageTemplates();
+      let pageTemplates = await this.paging.getPageTemplates();
       let pageNumber = 0;
-      for (let page of templates) {
+      for (let page of pageTemplates) {
         let pageData = Object.assign({}, await page.getData());
 
         // Issue #115
@@ -488,7 +503,7 @@ class Template extends TemplateContent {
           pageData.collections = data.collections;
         }
 
-        await page.augmentFinalData(pageData);
+        await page.addComputedData(pageData);
 
         results.push({
           template: page,
@@ -614,7 +629,8 @@ class Template extends TemplateContent {
       this.inputPath,
       this.inputDir,
       this.outputDir,
-      this.templateData
+      this.templateData,
+      this.extensionMap
     );
     tmpl.config = this.config;
 
