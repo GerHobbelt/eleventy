@@ -1,5 +1,5 @@
 const test = require("ava");
-import md from "@gerhobbelt/markdown-it";
+const md = require("@gerhobbelt/markdown-it");
 const TemplateConfig = require("../src/TemplateConfig");
 
 test("Template Config local config overrides base config", async (t) => {
@@ -405,8 +405,8 @@ test(".addWatchTarget adds a watch target", (t) => {
   t.deepEqual(cfg.additionalWatchTargets, ["/testdirectory/"]);
 });
 
-test("Properly throws error on illegal includes directory", t => {
-  t.throws(function() {
+test("Properly throws error on illegal includes directory", (t) => {
+  t.throws(function () {
     new TemplateConfig(
       require("../config.js"),
       "./test/stubs/config-illegal-includes-dir.js"
@@ -414,8 +414,8 @@ test("Properly throws error on illegal includes directory", t => {
   });
 });
 
-test("Properly throws error on illegal data directory", t => {
-  t.throws(function() {
+test("Properly throws error on illegal data directory", (t) => {
+  t.throws(function () {
     new TemplateConfig(
       require("../config.js"),
       "./test/stubs/config-illegal-data-dir.js"

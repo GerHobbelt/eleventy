@@ -2,7 +2,7 @@ const test = require("ava");
 const TemplateRender = require("../src/TemplateRender");
 const TemplateConfig = require("../src/TemplateConfig");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
-import md from "@gerhobbelt/markdown-it";
+const md = require("@gerhobbelt/markdown-it");
 
 function getNewTemplateRender(name, inputDir) {
   let eleventyConfig = new TemplateConfig();

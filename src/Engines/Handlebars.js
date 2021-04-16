@@ -54,7 +54,9 @@ class Handlebars extends TemplateEngine {
    */
   async cachePartialFiles() {
     let partials = await super.cachePartialFiles();
-    this.handlebarsLib.registerPartial(partials);
+    for (let name in partials) {
+      this.handlebarsLib.registerPartial(name, partials[name]);
+    }
     return partials;
   }
 

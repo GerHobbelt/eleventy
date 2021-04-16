@@ -2,8 +2,8 @@ const test = require("ava");
 const TemplateRender = require("../src/TemplateRender");
 const TemplateConfig = require("../src/TemplateConfig");
 const EleventyExtensionMap = require("../src/EleventyExtensionMap");
-import md from "@gerhobbelt/markdown-it";
-import mdEmoji from "@gerhobbelt/markdown-it-emoji";
+const md = require("@gerhobbelt/markdown-it");
+const mdEmoji = require("@gerhobbelt/markdown-it-emoji");
 const UserConfig = require("../src/UserConfig");
 const eleventySyntaxHighlightPlugin = require("@11ty/eleventy-plugin-syntaxhighlight");
 

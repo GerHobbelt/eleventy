@@ -94,7 +94,7 @@ class JavaScript extends TemplateEngine {
     }
   }
 
-  async getExtraDataFromFile(inputPath, template) {
+  async getExtraDataFromFile(inputPath) {
     let inst = this.getInstanceFromInputPath(inputPath);
     return await getJavaScriptData(inst, inputPath);
   }

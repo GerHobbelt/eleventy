@@ -42,6 +42,7 @@ class TemplateWriter {
     this.isDryRun = false;
     this.writeCount = 0;
     this.skippedCount = 0;
+
     this._templatePathCache = new Map();
   }
 
@@ -225,7 +226,9 @@ class TemplateWriter {
     let promises = [];
     for (let path of paths) {
       if (this.extensionMap.hasEngine(path)) {
-        promises.push(this.templateMap.add(this._createTemplate(path, paths, to)));
+        promises.push(
+          this.templateMap.add(this._createTemplate(path, paths, to))
+        );
       }
       debug(`${path} begun adding to map.`);
     }
@@ -312,7 +315,7 @@ class TemplateWriter {
 
   async write() {
     let paths = await this._getAllPaths();
-    console.log('Writer.write: PATHS = ', paths);
+    console.log("Writer.write: PATHS = ", paths);
     let promises = [];
 
     promises.push(this.writePassthroughCopy(paths));
