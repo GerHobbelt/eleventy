@@ -626,12 +626,6 @@ class UserConfig {
       return;
     }
 
-    console.log(
-      chalk.yellow(
-        "Warning: Configuration API `addExtension` is an experimental Eleventy feature with an unstable API. Be careful!"
-      )
-    );
-
     this.extensionMap.add(
       Object.assign(
         {
