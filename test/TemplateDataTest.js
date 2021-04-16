@@ -46,7 +46,11 @@ test("getData() use default processing (false)", async (t) => {
 
 test("Data dir does not exist", async (t) => {
   await t.throwsAsync(async () => {
-    let dataObj = new TemplateData("./test/thisdirectorydoesnotexist");
+    let eleventyConfig = new TemplateConfig();
+    let dataObj = new TemplateData(
+      "./test/thisdirectorydoesnotexist",
+      eleventyConfig
+    );
     await dataObj.getData();
   });
 });

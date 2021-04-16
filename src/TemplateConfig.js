@@ -8,7 +8,6 @@ const UserConfig = require("./UserConfig");
 const debug = require("debug")("Eleventy:TemplateConfig");
 const debugDev = require("debug")("Dev:Eleventy:TemplateConfig");
 const deleteRequireCache = require("./Util/DeleteRequireCache");
-const aggregateBench = require("./BenchmarkManager").get("Aggregate");
 
 /**
  * @module 11ty/eleventy/TemplateConfig
@@ -63,8 +62,6 @@ class TemplateConfig {
     this.initializeRootConfig();
 
     this.hasConfigMerged = false;
-
-    this.checkPathsAreAllowed();
   }
 
   /**
@@ -92,7 +89,7 @@ class TemplateConfig {
     debugDev("Resetting configuration: TemplateConfig and UserConfig.");
     this.userConfig.reset();
     this.initializeRootConfig();
-    this.config = this.mergeConfig();
+    this.config = this.mergeConfig(this.projectConfigPath);
   }
 
   /**
@@ -162,42 +159,15 @@ class TemplateConfig {
     debug("rootConfig %o", this.rootConfig);
   }
 
-  processPlugins(localConfig) {
-    // eleventyConfig.plugins
-    eleventyConfig.plugins.forEach(({ plugin, options }) => {
-      eleventyConfig.dir = localConfig.dir;
-      // TODO support function.name in plugin config functions
-      debug("Adding plugin (unknown name: check your config file).");
-      let pluginBench = aggregateBench.get("Configuration addPlugin");
-      if (typeof plugin === "function") {
-        pluginBench.before();
-        let configFunction = plugin;
-        configFunction(eleventyConfig, options);
-        pluginBench.after();
-      } else if (plugin && plugin.configFunction) {
-        pluginBench.before();
-        if (options && typeof options.init === "function") {
-          options.init.call(eleventyConfig, plugin.initArguments || {});
-        }
-
-        plugin.configFunction(eleventyConfig, options);
-        pluginBench.after();
-      } else {
-        throw new UserConfigError(
-          "Invalid EleventyConfig.addPlugin signature. Should be a function or a valid Eleventy plugin object."
-        );
-      }
-    });
-  }
-
   /**
    * Merges different config files together.
    *
+   * @param {String} projectConfigPath - Path to project config.
    * @returns {{}} merged - The merged config file.
    */
-  mergeConfig() {
+  mergeConfig(projectConfigPath) {
     let localConfig = {};
-    let path = TemplatePath.absolutePath(this.localProjectConfigPath);
+    let path = TemplatePath.absolutePath(projectConfigPath);
 
     debug(`Merging config with ${path}`);
 
@@ -248,11 +218,6 @@ class TemplateConfig {
       debug("Eleventy local project config file not found, skipping.");
     }
 
-    // Delay processing plugins until after the result of localConfig is returned
-    // But BEFORE the rest of the config options are merged
-    // this way we can pass directories and other template information to plugins
-    this.processPlugins(localConfig);
-
     let eleventyConfigApiMergingObject = this.userConfig.getMergingConfigObject();
 
     // remove special merge keys from object
@@ -291,18 +256,6 @@ class TemplateConfig {
     debug("Current configuration: %o", merged);
 
     return merged;
-  }
-
-  checkPathsAreAllowed() {
-    ["includes", "data"].forEach(eleventyDirName => {
-      const eleventyDirectory = this.config.dir[eleventyDirName];
-
-      if (!TemplatePath.isInsideWorkingDir(eleventyDirectory)) {
-        throw new EleventyConfigError(
-          `Error in your Eleventy config file: The configured ${eleventyDirName} directory (${eleventyDirectory}) is outside of Eleventy’s working directory.`
-        );
-      }
-    });
   }
 }
 

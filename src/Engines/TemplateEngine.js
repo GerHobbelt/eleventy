@@ -102,33 +102,37 @@ class TemplateEngine {
     if (this.includesDir) {
       let bench = aggregateBench.get("Searching the file system");
       bench.before();
-      await Promise.all(this.extensions.map(async function (extension) {
-        partialFiles = partialFiles.concat(
-          await fastglob(prefix + extension, {
-            caseSensitiveMatch: false,
-            dot: true,
-          })
-        );
-      }));
+      await Promise.all(
+        this.extensions.map(async function (extension) {
+          partialFiles = partialFiles.concat(
+            await fastglob(prefix + extension, {
+              caseSensitiveMatch: false,
+              dot: true,
+            })
+          );
+        })
+      );
       bench.after();
     }
 
     partialFiles = TemplatePath.addLeadingDotSlashArray(partialFiles);
 
-    await Promise.all(partialFiles.map(async (partialFile) => {
-      let partialPath = TemplatePath.stripLeadingSubPath(
-        partialFile,
-        this.includesDir
-      );
-      let partialPathNoExt = partialPath;
-      this.extensions.forEach(function (extension) {
-        partialPathNoExt = TemplatePath.removeExtension(
-          partialPathNoExt,
-          "." + extension
+    await Promise.all(
+      partialFiles.map(async (partialFile) => {
+        let partialPath = TemplatePath.stripLeadingSubPath(
+          partialFile,
+          this.includesDir
         );
-      });
-      partials[partialPathNoExt] = await fs.readFile(partialFile, "utf-8");
-    }));
+        let partialPathNoExt = partialPath;
+        this.extensions.forEach(function (extension) {
+          partialPathNoExt = TemplatePath.removeExtension(
+            partialPathNoExt,
+            "." + extension
+          );
+        });
+        partials[partialPathNoExt] = await fs.readFile(partialFile, "utf-8");
+      })
+    );
 
     debug(
       `${this.includesDir}/*.{${this.extensions}} found partials for: %o`,
@@ -164,7 +168,7 @@ class TemplateEngine {
     return true;
   }
 
-  getExtraDataFromFile() {
+  getExtraDataFromFile(inputPath) {
     return {};
   }
 
@@ -182,7 +186,7 @@ class TemplateEngine {
    * @return {Promise}
    */
   async compile() {
-    throw new Error('compile() must be implemented by engine');
+    throw new Error("compile() must be implemented by engine");
   }
 
   // whether or not compile is needed or can we return the plaintext?

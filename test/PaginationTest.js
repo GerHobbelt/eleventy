@@ -641,8 +641,8 @@ test("Pagination `before` Callback", async (t) => {
   t.deepEqual(templates[0].data.myalias, "item6");
 });
 
-test("Pagination `before` Callback with metadata", async t => {
-  let tmpl = new Template(
+test("Pagination `before` Callback with metadata", async (t) => {
+  let tmpl = getNewTemplate(
     "./test/stubs/paged/paged-before-metadata.njk",
     "./test/stubs/",
     "./dist"

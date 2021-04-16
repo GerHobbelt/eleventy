@@ -249,7 +249,7 @@ class Template extends TemplateContent {
   // Preferred to use the singular `getOutputLocations` above.
   async getOutputLink(data) {
     let link = await this._getLink(data);
-    debugDev(`getOutputLink() -> ${link.toString()}`)
+    debugDev(`getOutputLink() -> ${link.toString()}`);
     return link.toLink();
   }
 
@@ -573,19 +573,7 @@ class Template extends TemplateContent {
     await this.computedData.processRemainingData(data);
   }
 
-  cacheTemplates(pageUrl, templates) {
-    if (!this.templates) {
-      this.templates = {};
-    }
-    this.templates[pageUrl] = templates;
-  }
-
   async getTemplates(data, shouldRender = true) {
-    // for caching, we can safely assume that data.page.url is unique for each data input
-    if (this.templates && (data.page.url in this.templates)) {
-      return this.templates[data.page.url];
-    }
-    
     if (!Pagination.hasPagination(data)) {
       await this.addComputedData(data);
 
@@ -668,8 +656,6 @@ class Template extends TemplateContent {
         })
       );
     }
-
-    this.cacheTemplates(data.page.url, results);
   }
 
   // TODO move this into tests (this is only used by tests)

@@ -70,7 +70,12 @@ class JavaScript extends TemplateEngine {
 
   _getRequire(inputPath) {
     let requirePath = TemplatePath.absolutePath(inputPath);
-    return require(requirePath);
+    try {
+      return require(requirePath);
+    } catch (e) {
+      console.error(`Failed to process "${requirePath}": `, e);
+      throw e;
+    }
   }
 
   /**

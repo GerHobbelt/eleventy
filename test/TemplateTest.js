@@ -42,7 +42,7 @@ async function write(tmpl, data) {
   let mapEntries = await getTemplateMapEntriesWithContent(tmpl, data);
   let promises = [];
   for (let entry of mapEntries) {
-    if(entry.behavior.writeable) {
+    if (entry.behavior.writeable) {
       promises.push(tmpl._write(entry.outputPath, entry.templateContent));
     }
   }
@@ -2338,7 +2338,8 @@ test("eleventyComputed true primitive", async (t) => {
 });
 
 test("eleventyComputed relies on global data", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
+  let eleventyConfig = new TemplateConfig();
+  let dataObj = new TemplateData("./test/stubs/", eleventyConfig);
   let tmpl = getNewTemplate(
     "./test/stubs/eleventyComputed/use-global-data.njk",
     "./test/stubs/",
