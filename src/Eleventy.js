@@ -31,7 +31,7 @@ const debug = require("debug")("Eleventy");
  * @returns {module:11ty/eleventy/Eleventy~Eleventy}
  */
 class Eleventy {
-  constructor(input, output) {
+  constructor(input, output, options = {}) {
     /** @member {module:11ty/eleventy/TemplateConfig~TemplateConfig~config} - TemplateConfig instance */
     this.config = config.getConfig();
 
@@ -42,22 +42,23 @@ class Eleventy {
     this.configPath = null;
 
     /**
+     * @member {Boolean} - Was verbose mode overwritten?
+     * @default false
+     */
+    this.verboseModeSetViaCommandLineParam = false;
+
+    /**
      * @member {Boolean} - Is Eleventy running in verbose mode?
      * @default true
      */
-    this.isVerbose = process.env.DEBUG ? false : !this.config.quietMode;
-
-    /**
-     * @member {Boolean} - Was verbose mode overridden manually?
-     * @default false
-     */
-    this.isVerboseOverride = false;
-
-    /**
-     * @member {Boolean} - Is Eleventy running in debug mode?
-     * @default false
-     */
-    this.isDebug = false;
+    if (options.quietMode === true || options.quietMode === false) {
+      // Set via --quiet
+      this.setIsVerbose(!options.quietMode);
+      this.verboseModeSetViaCommandLineParam = true;
+    } else {
+      // Fall back to configuration
+      this.setIsVerbose(!this.config.quietMode);
+    }
 
     /**
      * @member {Boolean} - Is Eleventy running in dry mode?
@@ -325,22 +326,30 @@ Includes: ${this.eleventyFiles.getIncludesDir()}
 Layouts: ${this.eleventyFiles.getLayoutsDir()}
 Output: ${this.outputDir}
 Template Formats: ${formats.join(",")}
-Verbose Output: ${this.isVerbose}`);
+Verbose Output: ${this.verboseMode}`);
 
-    this.writer.setVerboseOutput(this.isVerbose);
+    this.writer.setVerboseOutput(this.verboseMode);
     this.writer.setDryRun(this.isDryRun);
 
     return this.templateData.cacheData();
   }
 
-  /**
-   * Updates the debug mode of Eleventy.
-   *
-   * @method
-   * @param {Boolean} isDebug - Shall Eleventy run in debug mode?
-   */
-  setIsDebug(isDebug) {
-    this.isDebug = !!isDebug;
+  /* Setter for verbose mode */
+  set verboseMode(value) {
+    this._isVerboseMode = !!value;
+
+    if (this.writer) {
+      this.writer.setVerboseOutput(this._isVerboseMode);
+    }
+
+    if (bench) {
+      bench.setVerboseOutput(this._isVerboseMode);
+    }
+  }
+
+  /* Getter for verbose mode */
+  get verboseMode() {
+    return this._isVerboseMode;
   }
 
   /**
@@ -350,18 +359,12 @@ Verbose Output: ${this.isVerbose}`);
    * @param {Boolean} isVerbose - Shall Eleventy run in verbose mode?
    */
   setIsVerbose(isVerbose) {
-    this.isVerbose = !!isVerbose;
-
-    // mark that this was changed from the default (probably from --quiet)
-    // this is used when we reset the config (only applies if not overridden)
-    this.isVerboseOverride = true;
-
-    if (this.writer) {
-      this.writer.setVerboseOutput(this.isVerbose);
+    // Debug mode should always run quiet (all output goes to debug logger)
+    if (process.env.DEBUG) {
+      isVerbose = false;
     }
-    if (bench) {
-      bench.setVerboseOutput(this.isVerbose);
-    }
+
+    this.verboseMode = isVerbose;
   }
 
   /**
@@ -431,8 +434,9 @@ Arguments:
     this.config = config.getConfig();
     this.eleventyServe.config = this.config;
 
-    if (!this.isVerboseOverride && !process.env.DEBUG) {
-      this.isVerbose = !this.config.quietMode;
+    // only use config quietMode if --quiet not set on CLI
+    if (!this.verboseModeSetViaCommandLineParam) {
+      this.setIsVerbose(!this.config.quietMode);
     }
   }
 
@@ -461,7 +465,10 @@ Arguments:
 
     this.watchManager.setBuildRunning();
 
-    this.config.events.emit("beforeWatch", this.watchManager.getActiveQueue());
+    await this.config.events.emit(
+      "beforeWatch",
+      this.watchManager.getActiveQueue()
+    );
 
     // reset and reload global configuration :O
     if (this.watchManager.hasQueuedFile(config.getLocalProjectConfigFile())) {
@@ -479,10 +486,14 @@ Arguments:
         incrementalFile,
         this.eleventyFiles.getIncludesDir()
       );
+      let isLayout = TemplatePath.startsWithSubPath(
+        incrementalFile,
+        this.eleventyFiles.getLayoutsDir()
+      );
       let isJSDependency = this.watchTargets.isJavaScriptDependency(
         incrementalFile
       );
-      if (!isInclude && !isJSDependency) {
+      if (!isInclude && !isLayout && !isJSDependency) {
         this.writer.setIncrementalFile(incrementalFile);
       }
     }
@@ -664,7 +675,6 @@ Arguments:
 
     initWatchBench.after();
 
-    this.watcherBench.setIsVerbose(true);
     this.watcherBench.finish("Watch");
 
     console.log("Watching…");
@@ -672,7 +682,7 @@ Arguments:
     this.watcher = watcher;
 
     let watchDelay;
-    async function watchRun(path) {
+    let watchRun = async (path) => {
       try {
         this._addFileToWatchQueue(path);
         clearTimeout(watchDelay);
@@ -691,16 +701,16 @@ Arguments:
           this.stopWatch();
         }
       }
-    }
+    };
 
     watcher.on("change", async (path) => {
       console.log("File changed:", path);
-      await watchRun.call(this, path);
+      await watchRun(path);
     });
 
     watcher.on("add", async (path) => {
       console.log("File added:", path);
-      await watchRun.call(this, path);
+      await watchRun(path);
     });
 
     process.on("SIGINT", () => this.stopWatch());
@@ -745,13 +755,13 @@ Arguments:
       EleventyErrorHandler.logger = this.logger;
     }
 
-    this.config.events.emit("beforeBuild");
+    await this.config.events.emit("beforeBuild");
 
     try {
       let promise = this.writer.write();
 
       ret = await promise;
-      this.config.events.emit("afterBuild");
+      await this.config.events.emit("afterBuild");
     } catch (e) {
       EleventyErrorHandler.initialMessage(
         "Problem writing Eleventy templates",

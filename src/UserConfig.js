@@ -1,7 +1,7 @@
-const EventEmitter = require("events");
 const chalk = require("chalk");
 const semver = require("semver");
 const { DateTime } = require("luxon");
+const EventEmitter = require("./Util/AsyncEventEmitter");
 const EleventyBaseError = require("./EleventyBaseError");
 const bench = require("./BenchmarkManager").get("Configuration");
 const debug = require("debug")("Eleventy:UserConfig");
@@ -29,6 +29,7 @@ class UserConfig {
     this.nunjucksFilters = {};
     this.nunjucksAsyncFilters = {};
     this.nunjucksTags = {};
+    this.nunjucksGlobals = {};
     this.nunjucksShortcodes = {};
     this.nunjucksAsyncShortcodes = {};
     this.nunjucksPairedShortcodes = {};
@@ -45,8 +46,7 @@ class UserConfig {
     this.passthroughCopies = {};
     this.layoutAliases = {};
     this.linters = {};
-    // now named `transforms` in API
-    this.filters = {};
+    this.transforms = {};
     this.activeNamespace = "";
     this.DateTime = DateTime;
     this.dynamicPermalinks = true;
@@ -237,13 +237,28 @@ class UserConfig {
     return this;
   }
 
+  addNunjucksGlobal(name, globalFn) {
+    name = this.getNamespacedName(name);
+
+    if (this.nunjucksGlobals[name]) {
+      debug(
+        chalk.yellow(
+          "Warning, overwriting a Nunjucks global with `addNunjucksGlobal(%o)`"
+        ),
+        name
+      );
+    }
+
+    this.nunjucksGlobals[name] = bench.add(
+      `"${name}" Nunjucks Global`,
+      globalFn
+    );
+  }
+
   addTransform(name, callback) {
     name = this.getNamespacedName(name);
 
-    // these are now called transforms
-    // this naming is kept here for backwards compatibility
-    // TODO major version change
-    this.filters[name] = callback;
+    this.transforms[name] = callback;
   }
 
   addLinter(name, callback) {
@@ -636,7 +651,8 @@ class UserConfig {
     return {
       templateFormats: this.templateFormats,
       templateFormatsAdded: this.templateFormatsAdded,
-      filters: this.filters, // now called transforms
+      // filters removed in 1.0 (use addTransform instead)
+      transforms: this.transforms,
       linters: this.linters,
       globalData: this.globalData,
       layoutAliases: this.layoutAliases,
@@ -649,6 +665,7 @@ class UserConfig {
       nunjucksFilters: this.nunjucksFilters,
       nunjucksAsyncFilters: this.nunjucksAsyncFilters,
       nunjucksTags: this.nunjucksTags,
+      nunjucksGlobals: this.nunjucksGlobals,
       nunjucksAsyncShortcodes: this.nunjucksAsyncShortcodes,
       nunjucksShortcodes: this.nunjucksShortcodes,
       nunjucksAsyncPairedShortcodes: this.nunjucksAsyncPairedShortcodes,

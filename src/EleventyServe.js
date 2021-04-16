@@ -1,4 +1,5 @@
 const fs = require("fs-extra");
+const path = require("path");
 
 const TemplatePath = require("./TemplatePath");
 const config = require("./Config");
@@ -19,7 +20,13 @@ class EleventyServe {
   }
 
   getPathPrefix() {
-    return this.config.pathPrefix || "/";
+    let cfgPrefix = this.config.pathPrefix;
+    if (cfgPrefix) {
+      // add leading / (for browsersync), see #1454
+      // path.join uses \\ for Windows so we split and rejoin
+      return path.join("/", cfgPrefix).split(path.sep).join("/");
+    }
+    return "/";
   }
 
   getRedirectDir(dirName) {
@@ -41,7 +48,7 @@ class EleventyServe {
 
     // TODO customize this in Configuration API?
     let serverConfig = {
-      baseDir: this.outputDir
+      baseDir: this.outputDir,
     };
 
     let redirectDirName = this.getRedirectDirOverride();
@@ -68,7 +75,7 @@ class EleventyServe {
         watch: false,
         open: false,
         notify: false,
-        index: "index.html"
+        index: "index.html",
       },
       this.config.browserSyncConfig
     );
@@ -78,7 +85,7 @@ class EleventyServe {
     if (dirName && dirName !== "/") {
       let savedPathFilename = this.getRedirectFilename(dirName);
 
-      setTimeout(function() {
+      setTimeout(function () {
         if (!fs.existsSync(savedPathFilename)) {
           debug(`Cleanup redirect: Could not find ${savedPathFilename}`);
           return;
@@ -94,7 +101,7 @@ class EleventyServe {
           return;
         }
 
-        fs.unlink(savedPathFilename, err => {
+        fs.unlink(savedPathFilename, (err) => {
           if (!err) {
             debug(`Cleanup redirect: Deleted ${savedPathFilename}`);
           }
@@ -141,7 +148,9 @@ class EleventyServe {
     }
 
     this.cleanupRedirect(this.savedPathPrefix);
-    this.server.init(this.getOptions(port));
+
+    let options = this.getOptions(port);
+    this.server.init(options);
 
     // this needs to happen after `.getOptions`
     this.savedPathPrefix = pathPrefix;

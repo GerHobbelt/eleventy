@@ -20,3 +20,6 @@ yarn.lock
 
 # ignore NPM configurations
 .npmrc
+
+test/stubs-layout-cache/_includes/*.js
+

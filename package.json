@@ -65,7 +65,7 @@
       "./test/*.js"
     ],
     "ignoredByWatcher": [
-      "./test/stubs/**/*"
+      "./test/stubs*/**/*"
     ]
   },
   "lint-staged": {
@@ -74,18 +74,18 @@
     ]
   },
   "devDependencies": {
-    "@11ty/eleventy-plugin-syntaxhighlight": "^3.0.1",
+    "@11ty/eleventy-plugin-syntaxhighlight": "^3.0.4",
     "@gerhobbelt/json5": "^2.1.0-48",
     "@gerhobbelt/markdown-it-emoji": "1.2.1-5",
-    "ava": "^3.12.1",
-    "husky": "^4.2.5",
+    "ava": "^3.13.0",
+    "husky": "^4.3.0",
     "ink-docstrap": "1.3.2",
     "js-yaml": "^3.14.0",
-    "jsdoc": "3.6.5",
-    "lint-staged": "^10.3.0",
+    "jsdoc": "3.6.6",
+    "lint-staged": "^10.4.2",
     "node-sass": "^4.14.1",
     "nyc": "^15.1.0",
-    "prettier": "^2.1.1",
+    "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
     "toml": "^3.0.0",
     "viperhtml": "^2.17.1",
@@ -94,10 +94,10 @@
   },
   "dependencies": {
     "@11ty/dependency-tree": "^1.0.0",
-    "browser-sync": "^2.26.12",
+    "browser-sync": "^2.26.13",
     "chalk": "^4.1.0",
-    "chokidar": "^3.4.2",
-    "debug": "^4.1.1",
+    "chokidar": "^3.4.3",
+    "debug": "^4.2.0",
     "dependency-graph": "^0.9.0",
     "ejs": "^3.1.5",
     "fast-glob": "^3.2.4",
@@ -105,13 +105,13 @@
     "gray-matter": "^4.0.2",
     "hamljs": "^0.6.2",
     "handlebars": "^4.7.6",
-    "liquidjs": "^9.15.0",
+    "liquidjs": "^9.16.1",
     "lodash": "^4.17.20",
     "luxon": "^1.25.0",
     "@gerhobbelt/markdown-it": "10.0.0-32",
     "minimist": "^1.2.5",
     "moo": "^0.5.1",
-    "multimatch": "^4.0.0",
+    "multimatch": "^5.0.0",
     "mustache": "^4.0.1",
     "normalize-path": "^3.0.0",
     "nunjucks": "^3.2.2",

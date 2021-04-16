@@ -1,5 +1,6 @@
 const test = require("ava");
 const fs = require("fs-extra");
+const fsp = require("fs").promises;
 const pretty = require("pretty");
 const Template = require("../src/Template");
 const TemplateData = require("../src/TemplateData");
@@ -1203,7 +1204,7 @@ test("Test a transform", async (t) => {
     "./test/stubs/_site"
   );
 
-  tmpl.addTransform(function (content, outputPath) {
+  tmpl.addTransform("transformName", function (content, outputPath) {
     t.true(outputPath.endsWith(".html"));
     return "OVERRIDE BY A TRANSFORM";
   });
@@ -1222,7 +1223,7 @@ test.skip("Test a transform (does it have inputPath?)", async (t) => {
     "./test/stubs/_site"
   );
 
-  tmpl.addTransform(function (content, outputPath, inputPath) {
+  tmpl.addTransform("transformName", function (content, outputPath, inputPath) {
     t.true(outputPath.endsWith(".html"));
     t.true(!!inputPath);
     return "OVERRIDE BY A TRANSFORM";
@@ -1241,7 +1242,7 @@ test("Test a transform with pages", async (t) => {
     "./test/stubs/_site"
   );
 
-  tmpl.addTransform(function (content, outputPath) {
+  tmpl.addTransform("transformName", function (content, outputPath) {
     // should run twice, one for each page
     t.true(content.length > 0);
     t.true(outputPath.endsWith(".html"));
@@ -1261,7 +1262,7 @@ test("Test a transform with a layout", async (t) => {
     "./test/stubs-475/_site"
   );
 
-  tmpl.addTransform(function (content, outputPath) {
+  tmpl.addTransform("transformName", function (content, outputPath) {
     t.is(content, "<html><body>This is content.</body></html>");
     t.true(outputPath.endsWith(".html"));
     return "OVERRIDE BY A TRANSFORM";
@@ -1280,7 +1281,7 @@ test("Test a single asynchronous transform", async (t) => {
     "./test/stubs/_site"
   );
 
-  tmpl.addTransform(async function (content, outputPath) {
+  tmpl.addTransform("transformName", async function (content, outputPath) {
     t.true(outputPath.endsWith("template/index.html"));
 
     return new Promise((resolve, reject) => {
@@ -1303,7 +1304,7 @@ test("Test multiple asynchronous transforms", async (t) => {
     "./test/stubs/_site"
   );
 
-  tmpl.addTransform(async function (content, outputPath) {
+  tmpl.addTransform("transformName", async function (content, outputPath) {
     t.true(outputPath.endsWith("template/index.html"));
 
     return new Promise((resolve, reject) => {
@@ -1314,7 +1315,7 @@ test("Test multiple asynchronous transforms", async (t) => {
   });
 
   // uppercase
-  tmpl.addTransform(async function (str, outputPath) {
+  tmpl.addTransform("transformName", async function (str, outputPath) {
     t.true(outputPath.endsWith("template/index.html"));
 
     return new Promise((resolve, reject) => {
@@ -2067,6 +2068,58 @@ test("Engine Singletons", async (t) => {
   );
 
   t.deepEqual(tmpl1.engine, tmpl2.engine);
+});
+
+test("Make sure layout cache takes new changes during watch (nunjucks)", async (t) => {
+  await fsp.writeFile(
+    "./test/stubs-layout-cache/_includes/include-script-1.js",
+    `alert("hi");`,
+    { encoding: "utf8" }
+  );
+
+  let tmpl = getNewTemplate(
+    "./test/stubs-layout-cache/test.njk",
+    "./test/stubs-layout-cache/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+
+  t.is((await tmpl.render(data)).trim(), '<script>alert("hi");</script>');
+
+  await fsp.writeFile(
+    "./test/stubs-layout-cache/_includes/include-script-1.js",
+    `alert("bye");`,
+    { encoding: "utf8" }
+  );
+
+  t.is((await tmpl.render(data)).trim(), '<script>alert("bye");</script>');
+});
+
+test("Make sure layout cache takes new changes during watch (liquid)", async (t) => {
+  await fsp.writeFile(
+    "./test/stubs-layout-cache/_includes/include-script-2.js",
+    `alert("hi");`,
+    { encoding: "utf8" }
+  );
+
+  let tmpl = getNewTemplate(
+    "./test/stubs-layout-cache/test.liquid",
+    "./test/stubs-layout-cache/",
+    "./dist"
+  );
+
+  let data = await tmpl.getData();
+
+  t.is((await tmpl.render(data)).trim(), '<script>alert("hi");</script>');
+
+  await fsp.writeFile(
+    "./test/stubs-layout-cache/_includes/include-script-2.js",
+    `alert("bye");`,
+    { encoding: "utf8" }
+  );
+
+  t.is((await tmpl.render(data)).trim(), '<script>alert("bye");</script>');
 });
 
 test("eleventyComputed", async (t) => {

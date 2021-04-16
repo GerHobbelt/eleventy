@@ -18,10 +18,10 @@ test("Template Config local config overrides base config", async (t) => {
   t.truthy(Object.keys(cfg.handlebarsHelpers).length);
   t.truthy(Object.keys(cfg.nunjucksFilters).length);
 
-  t.is(Object.keys(cfg.filters).length, 1);
+  t.is(Object.keys(cfg.transforms).length, 1);
 
   t.is(
-    cfg.filters.prettyHtml(
+    cfg.transforms.prettyHtml(
       `<html><body><div></div></body></html>`,
       "test.html"
     ),
@@ -55,6 +55,20 @@ test("Add nunjucks tag", (t) => {
   );
   let cfg = templateCfg.getConfig();
   t.not(Object.keys(cfg.nunjucksTags).indexOf("myNunjucksTag"), -1);
+});
+
+test("Add nunjucks global", (t) => {
+  eleventyConfig.reset();
+  eleventyConfig.addNunjucksGlobal("myNunjucksGlobal1", function () {});
+  eleventyConfig.addNunjucksGlobal("myNunjucksGlobal2", 42);
+
+  let templateCfg = new TemplateConfig(
+    require("../src/defaultConfig.js"),
+    "./test/stubs/config.js"
+  );
+  let cfg = templateCfg.getConfig();
+  t.not(Object.keys(cfg.nunjucksGlobals).indexOf("myNunjucksGlobal1"), -1);
+  t.not(Object.keys(cfg.nunjucksGlobals).indexOf("myNunjucksGlobal2"), -1);
 });
 
 test("Add liquid filter", (t) => {
