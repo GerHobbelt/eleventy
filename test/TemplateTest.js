@@ -1,17 +1,17 @@
-import test from "ava";
-import fs from "fs-extra";
-import pretty from "pretty";
-import Template from "../src/Template";
-import TemplateData from "../src/TemplateData";
-import EleventyExtensionMap from "../src/EleventyExtensionMap";
-import EleventyErrorUtil from "../src/EleventyErrorUtil";
-import TemplateContentPrematureUseError from "../src/Errors/TemplateContentPrematureUseError";
-import normalizeNewLines from "./Util/normalizeNewLines";
+const test = require("ava");
+const fs = require("fs-extra");
+const pretty = require("pretty");
+const Template = require("../src/Template");
+const TemplateData = require("../src/TemplateData");
+const EleventyExtensionMap = require("../src/EleventyExtensionMap");
+const EleventyErrorUtil = require("../src/EleventyErrorUtil");
+const TemplateContentPrematureUseError = require("../src/Errors/TemplateContentPrematureUseError");
+const normalizeNewLines = require("./Util/normalizeNewLines");
 
-import templateConfig from "../src/Config";
+const templateConfig = require("../src/Config");
 const config = templateConfig.getConfig();
 
-import getNewTemplate from "./_getNewTemplateForTests";
+const getNewTemplate = require("./_getNewTemplateForTests");
 
 async function getRenderedData(tmpl, pageNumber = 0) {
   let data = await tmpl.getData();
@@ -366,30 +366,6 @@ test("Liquid template with include", async (t) => {
     (await tmpl.render(await tmpl.getData())).trim(),
     "<p>This is an include.</p>"
   );
-});
-
-test("ES6 Template Literal (No Backticks)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
-  let tmpl = getNewTemplate(
-    "./test/stubs/formatTest.jstl",
-    "./test/stubs/",
-    "dist",
-    dataObj
-  );
-
-  t.is((await tmpl.render(await tmpl.getData())).trim(), `<p>ZACH</p>`);
-});
-
-test("ES6 Template Literal (with Backticks)", async (t) => {
-  let dataObj = new TemplateData("./test/stubs/");
-  let tmpl = getNewTemplate(
-    "./test/stubs/formatTestBackticks.jstl",
-    "./test/stubs/",
-    "dist",
-    dataObj
-  );
-
-  t.is((await tmpl.render(await tmpl.getData())).trim(), `<p>ZACH</p>`);
 });
 
 test("Permalink output directory", async (t) => {
@@ -2073,7 +2049,7 @@ test("Get Layout Chain", async (t) => {
   ]);
 });
 
-test("Engine Singletons", async t => {
+test("Engine Singletons", async (t) => {
   let map = new EleventyExtensionMap(["njk"]);
   let tmpl1 = getNewTemplate(
     "./test/stubs/engine-singletons/first.njk",

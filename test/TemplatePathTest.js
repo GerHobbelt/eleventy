@@ -1,7 +1,7 @@
-import test from "ava";
-import TemplatePath from "../src/TemplatePath";
+const test = require("ava");
+const TemplatePath = require("../src/TemplatePath");
 
-test("getDir", t => {
+test("getDir", (t) => {
   t.is(TemplatePath.getDir("README.md"), ".");
   t.is(TemplatePath.getDir("test/stubs/config.js"), "test/stubs");
   t.is(TemplatePath.getDir("./test/stubs/config.js"), "./test/stubs");
@@ -17,12 +17,12 @@ test("isInsideWorkingDir", t => {
   t.false(TemplatePath.isInsideWorkingDir(".."));
 });
 
-test("getDirFromFilePath", t => {
+test("getDirFromFilePath", (t) => {
   t.is(TemplatePath.getDirFromFilePath("test/stubs/*.md"), "test/stubs");
   t.is(TemplatePath.getDirFromFilePath("test/stubs/!(x.md)"), "test/stubs");
 });
 
-test("getLastPathSegment", t => {
+test("getLastPathSegment", (t) => {
   t.is(TemplatePath.getLastPathSegment("./testing/hello"), "hello");
   t.is(TemplatePath.getLastPathSegment("./testing"), "testing");
   t.is(TemplatePath.getLastPathSegment("./testing/"), "testing");
@@ -30,7 +30,7 @@ test("getLastPathSegment", t => {
   t.is(TemplatePath.getLastPathSegment("testing"), "testing");
 });
 
-test("getAllDirs", t => {
+test("getAllDirs", (t) => {
   t.deepEqual(TemplatePath.getAllDirs("."), ["."]);
   t.deepEqual(TemplatePath.getAllDirs("./"), ["."]);
   t.deepEqual(TemplatePath.getAllDirs("./testing"), ["./testing"]);
@@ -40,13 +40,13 @@ test("getAllDirs", t => {
 
   t.deepEqual(TemplatePath.getAllDirs("./testing/hello"), [
     "./testing/hello",
-    "./testing"
+    "./testing",
   ]);
 
   t.deepEqual(TemplatePath.getAllDirs("./src/collections/posts"), [
     "./src/collections/posts",
     "./src/collections",
-    "./src"
+    "./src",
   ]);
 
   t.deepEqual(
@@ -57,14 +57,14 @@ test("getAllDirs", t => {
       "./src/site/content/en",
       "./src/site/content",
       "./src/site",
-      "./src"
+      "./src",
     ]
   );
 
   t.deepEqual(TemplatePath.getAllDirs("./src/_site/src"), [
     "./src/_site/src",
     "./src/_site",
-    "./src"
+    "./src",
   ]);
 
   t.deepEqual(TemplatePath.getAllDirs("./src/_site/src/src/src"), [
@@ -72,11 +72,11 @@ test("getAllDirs", t => {
     "./src/_site/src/src",
     "./src/_site/src",
     "./src/_site",
-    "./src"
+    "./src",
   ]);
 });
 
-test("normalize", async t => {
+test("normalize", async (t) => {
   t.is(TemplatePath.normalize(""), ".");
   t.is(TemplatePath.normalize("."), ".");
   t.is(TemplatePath.normalize("/"), "/");
@@ -97,7 +97,7 @@ test("normalize", async t => {
   t.is(TemplatePath.normalize(".htaccess"), ".htaccess");
 });
 
-test("join", async t => {
+test("join", async (t) => {
   t.is(TemplatePath.join("src", "_includes"), "src/_includes");
   t.is(TemplatePath.join("src", "_includes/"), "src/_includes");
   t.is(TemplatePath.join("src", "/_includes"), "src/_includes");
@@ -113,7 +113,7 @@ test("join", async t => {
   t.is(TemplatePath.join("src", "test", "..", "_includes"), "src/_includes");
 });
 
-test("normalizeUrlPath", t => {
+test("normalizeUrlPath", (t) => {
   t.is(TemplatePath.normalizeUrlPath(""), ".");
   t.is(TemplatePath.normalizeUrlPath("."), ".");
   t.is(TemplatePath.normalizeUrlPath("./"), "./");
@@ -130,23 +130,21 @@ test("normalizeUrlPath", t => {
   t.is(TemplatePath.normalizeUrlPath("/test/../../"), "/");
 });
 
-test("absolutePath", t => {
+test("absolutePath", (t) => {
   t.is(
-    TemplatePath.absolutePath(".eleventy.js")
-      .split("/")
-      .pop(),
+    TemplatePath.absolutePath(".eleventy.js").split("/").pop(),
     ".eleventy.js"
   );
 });
 
-test("absolutePath and relativePath", t => {
+test("absolutePath and relativePath", (t) => {
   t.is(
     TemplatePath.relativePath(TemplatePath.absolutePath(".eleventy.js")),
     ".eleventy.js"
   );
 });
 
-test("addLeadingDotSlash", t => {
+test("addLeadingDotSlash", (t) => {
   t.is(TemplatePath.addLeadingDotSlash("."), "./");
   t.is(TemplatePath.addLeadingDotSlash(".."), "../");
   t.is(TemplatePath.addLeadingDotSlash("./test/stubs"), "./test/stubs");
@@ -157,22 +155,22 @@ test("addLeadingDotSlash", t => {
   t.is(TemplatePath.addLeadingDotSlash(".nyc_output"), "./.nyc_output");
 });
 
-test("addLeadingDotSlashArray", t => {
+test("addLeadingDotSlashArray", (t) => {
   t.deepEqual(TemplatePath.addLeadingDotSlashArray(["."]), ["./"]);
   t.deepEqual(TemplatePath.addLeadingDotSlashArray([".."]), ["../"]);
   t.deepEqual(TemplatePath.addLeadingDotSlashArray(["./test/stubs"]), [
-    "./test/stubs"
+    "./test/stubs",
   ]);
   t.deepEqual(TemplatePath.addLeadingDotSlashArray(["./dist"]), ["./dist"]);
   t.deepEqual(TemplatePath.addLeadingDotSlashArray(["../dist"]), ["../dist"]);
   t.deepEqual(TemplatePath.addLeadingDotSlashArray(["/dist"]), ["/dist"]);
   t.deepEqual(TemplatePath.addLeadingDotSlashArray(["dist"]), ["./dist"]);
   t.deepEqual(TemplatePath.addLeadingDotSlashArray([".nyc_output"]), [
-    "./.nyc_output"
+    "./.nyc_output",
   ]);
 });
 
-test("stripLeadingDotSlash", t => {
+test("stripLeadingDotSlash", (t) => {
   t.is(TemplatePath.stripLeadingDotSlash("./test/stubs"), "test/stubs");
   t.is(TemplatePath.stripLeadingDotSlash("./dist"), "dist");
   t.is(TemplatePath.stripLeadingDotSlash("../dist"), "../dist");
@@ -181,7 +179,7 @@ test("stripLeadingDotSlash", t => {
   t.is(TemplatePath.stripLeadingDotSlash(".htaccess"), ".htaccess");
 });
 
-test("startsWithSubPath", t => {
+test("startsWithSubPath", (t) => {
   t.false(TemplatePath.startsWithSubPath("./testing/hello", "./lskdjklfjz"));
   t.false(TemplatePath.startsWithSubPath("./testing/hello", "lskdjklfjz"));
   t.false(TemplatePath.startsWithSubPath("testing/hello", "./lskdjklfjz"));
@@ -213,7 +211,7 @@ test("startsWithSubPath", t => {
   );
 });
 
-test("stripLeadingSubPath", t => {
+test("stripLeadingSubPath", (t) => {
   t.is(
     TemplatePath.stripLeadingSubPath("./testing/hello", "./lskdjklfjz"),
     "testing/hello"
@@ -232,7 +230,7 @@ test("stripLeadingSubPath", t => {
   t.is(TemplatePath.stripLeadingSubPath(".htaccess", "."), ".htaccess");
 });
 
-test("convertToRecursiveGlobSync", t => {
+test("convertToRecursiveGlobSync", (t) => {
   t.is(TemplatePath.convertToRecursiveGlobSync(""), "./**");
   t.is(TemplatePath.convertToRecursiveGlobSync("."), "./**");
   t.is(TemplatePath.convertToRecursiveGlobSync("./"), "./**");
@@ -254,7 +252,7 @@ test("convertToRecursiveGlobSync", t => {
   );
 });
 
-test("convertToRecursiveGlob", async t => {
+test("convertToRecursiveGlob", async (t) => {
   t.is(await TemplatePath.convertToRecursiveGlob(""), "./**");
   t.is(await TemplatePath.convertToRecursiveGlob("."), "./**");
   t.is(await TemplatePath.convertToRecursiveGlob("./"), "./**");
@@ -276,14 +274,14 @@ test("convertToRecursiveGlob", async t => {
   );
 });
 
-test("getExtension", t => {
+test("getExtension", (t) => {
   t.is(TemplatePath.getExtension(""), "");
   t.is(TemplatePath.getExtension("test/stubs"), "");
   t.is(TemplatePath.getExtension("test/stubs.njk"), "njk");
   t.is(TemplatePath.getExtension("test/stubs.hbs"), "hbs");
 });
 
-test("removeExtension", t => {
+test("removeExtension", (t) => {
   t.is(TemplatePath.removeExtension(""), "");
   t.is(TemplatePath.removeExtension("", "hbs"), "");
 
@@ -315,21 +313,21 @@ test("removeExtension", t => {
   );
 });
 
-test("isDirectorySync", t => {
+test("isDirectorySync", (t) => {
   t.is(TemplatePath.isDirectorySync("asdlkfjklsadjflkja"), false);
   t.is(TemplatePath.isDirectorySync("test"), true);
   t.is(TemplatePath.isDirectorySync("test/stubs"), true);
   t.is(TemplatePath.isDirectorySync("test/stubs/.eleventyignore"), false);
 });
 
-test("isDirectory", async t => {
+test("isDirectory", async (t) => {
   t.is(await TemplatePath.isDirectory("asdlkfjklsadjflkja"), false);
   t.is(await TemplatePath.isDirectory("test"), true);
   t.is(await TemplatePath.isDirectory("test/stubs"), true);
   t.is(await TemplatePath.isDirectory("test/stubs/.eleventyignore"), false);
 });
 
-test("exists", async t => {
+test("exists", async (t) => {
   t.is(await TemplatePath.exists("asdlkfjklsadjflkja"), false);
   t.is(await TemplatePath.exists("test"), true);
   t.is(await TemplatePath.exists("test/stubs"), true);

@@ -56,6 +56,7 @@ class UserConfig {
     this.watchJavaScriptDependencies = true;
     this.additionalWatchTargets = [];
     this.browserSyncConfig = {};
+    this.globalData = {};
     this.chokidarConfig = {};
     this.watchThrottleWaitTime = 0; //ms
 
@@ -75,6 +76,8 @@ class UserConfig {
     }
   }
 
+  // Duplicate event bindings are avoided with the `reset` method above.
+  // A new EventEmitter instance is created when the config is reset.
   on(eventName, callback) {
     return this.events.on(eventName, callback);
   }
@@ -228,6 +231,12 @@ class UserConfig {
     this.nunjucksTags[name] = bench.add(`"${name}" Nunjucks Custom Tag`, tagFn);
   }
 
+  addGlobalData(name, data) {
+    name = this.getNamespacedName(name);
+    this.globalData[name] = data;
+    return this;
+  }
+
   addTransform(name, callback) {
     name = this.getNamespacedName(name);
 
@@ -306,7 +315,9 @@ class UserConfig {
 
   _normalizeTemplateFormats(templateFormats) {
     if (typeof templateFormats === "string") {
-      templateFormats = templateFormats.split(",").map(format => format.trim());
+      templateFormats = templateFormats
+        .split(",")
+        .map((format) => format.trim());
     }
     return templateFormats;
   }
@@ -610,7 +621,7 @@ class UserConfig {
       Object.assign(
         {
           key: fileExtension,
-          extension: fileExtension
+          extension: fileExtension,
         },
         options
       )
@@ -627,6 +638,7 @@ class UserConfig {
       templateFormatsAdded: this.templateFormatsAdded,
       filters: this.filters, // now called transforms
       linters: this.linters,
+      globalData: this.globalData,
       layoutAliases: this.layoutAliases,
       passthroughCopies: this.passthroughCopies,
       liquidOptions: this.liquidOptions,
@@ -661,7 +673,7 @@ class UserConfig {
       dataExtensions: this.dataExtensions,
       extensionMap: this.extensionMap,
       quietMode: this.quietMode,
-      events: this.events
+      events: this.events,
     };
   }
 }

@@ -272,14 +272,37 @@ class TemplateData {
     return globalData;
   }
 
+  async getInitialGlobalData() {
+    let globalData = {};
+    if (this.config.globalData) {
+      let keys = Object.keys(this.config.globalData);
+      for (let j = 0; j < keys.length; j++) {
+        let returnValue = this.config.globalData[keys[j]];
+
+        if (typeof returnValue === "function") {
+          returnValue = await returnValue();
+        }
+        globalData[keys[j]] = returnValue;
+      }
+    }
+    return globalData;
+  }
+
   async getData() {
     let rawImports = this.getRawImports();
+
+    let initialGlobalData = await this.getInitialGlobalData();
 
     if (!this.globalData) {
       let globalJson = await this.getAllGlobalData();
 
       // OK: Shallow merge when combining rawImports (pkg) with global data files
-      this.globalData = Object.assign({}, globalJson, rawImports);
+      this.globalData = Object.assign(
+        {},
+        initialGlobalData,
+        globalJson,
+        rawImports
+      );
     }
 
     return this.globalData;
@@ -293,7 +316,7 @@ class TemplateData {
     }
 
     // Filter out files we know don't exist to avoid overhead for checking
-    localDataPaths = localDataPaths.filter(path => {
+    localDataPaths = localDataPaths.filter((path) => {
       return this._fsExistsCache.exists(path);
     });
 
@@ -392,11 +415,11 @@ class TemplateData {
     }
   }
 
+  // ignoreProcessing = false for global data files
+  // ignoreProcessing = true for local data files
   async getDataValue(path, rawImports, ignoreProcessing) {
     let extension = TemplatePath.getExtension(path);
 
-    // ignoreProcessing = false for global data files
-    // ignoreProcessing = true for local data files
     if (
       extension === "js" ||
       extension === "cjs" ||
