@@ -2,13 +2,19 @@ const lodashChunk = require("lodash/chunk");
 const lodashGet = require("lodash/get");
 const lodashSet = require("lodash/set");
 const EleventyBaseError = require("../EleventyBaseError");
-const config = require("../Config");
 
+class PaginationConfigError extends EleventyBaseError {}
 class PaginationError extends EleventyBaseError {}
 
 class Pagination {
-  constructor(data) {
-    this.config = config.getConfig();
+  constructor(data, config) {
+    if (!config) {
+      throw new PaginationConfigError(
+        "Expected `config` argument to Pagination class."
+      );
+    }
+
+    this.config = config;
 
     this.setData(data);
   }
@@ -238,12 +244,10 @@ class Pagination {
       cloned.setPaginationData(override);
 
       // TO DO subdirectory to links if the site doesn’t live at /
-      let [outputLink, outputHref] = await Promise.all([
-        cloned.getOutputLink(),
-        cloned.getOutputHref(),
-      ]);
-      links.push("/" + outputLink);
-      hrefs.push(outputHref);
+      // TODO missing data argument means Template.getData is regenerated, maybe doesn’t matter because of data cache?
+      let { link, href } = await cloned.getOutputLocations();
+      links.push("/" + link);
+      hrefs.push(href);
     }
 
     // we loop twice to pass in the appropriate prev/next links (already full generated now)

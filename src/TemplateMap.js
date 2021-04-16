@@ -3,12 +3,13 @@ const DependencyGraph = require("dependency-graph").DepGraph;
 const TemplateCollection = require("./TemplateCollection");
 const EleventyErrorUtil = require("./EleventyErrorUtil");
 const UsingCircularTemplateContentReferenceError = require("./Errors/UsingCircularTemplateContentReferenceError");
-// TODO the config setup here is overly complex. Why aren’t we injecting config instance like everywhere else?
-const eleventyConfig = require("./EleventyConfig");
 const debug = require("debug")("Eleventy:TemplateMap");
 const debugDev = require("debug")("Dev:Eleventy:TemplateMap");
 
 const EleventyBaseError = require("./EleventyBaseError");
+
+class TemplateMapConfigError extends EleventyBaseError {}
+
 class DuplicatePermalinkOutputError extends EleventyBaseError {
   get removeDuplicateErrorStringFromOutput() {
     return true;
@@ -16,7 +17,11 @@ class DuplicatePermalinkOutputError extends EleventyBaseError {
 }
 
 class TemplateMap {
-  constructor() {
+  constructor(eleventyConfig) {
+    if (!eleventyConfig) {
+      throw new TemplateMapConfigError("Missing config argument.");
+    }
+    this.eleventyConfig = eleventyConfig;
     this.map = [];
     this.collectionsData = null;
     this.cached = false;
@@ -25,11 +30,32 @@ class TemplateMap {
     this.collection = new TemplateCollection();
   }
 
+  set userConfig(config) {
+    this._userConfig = config;
+  }
+
+  get userConfig() {
+    if (!this._userConfig) {
+      // TODO use this.config for this, need to add collections to mergable props in userconfig
+      this._userConfig = this.eleventyConfig.userConfig;
+    }
+
+    return this._userConfig;
+  }
+
+  get config() {
+    if (!this._config) {
+      this._config = this.eleventyConfig.getConfig();
+    }
+    return this._config;
+  }
+
   get tagPrefix() {
     return "___TAG___";
   }
 
   async add(template) {
+    // getTemplateMapEntries is where the Template.getData is first generated
     for (let map of await template.getTemplateMapEntries()) {
       this.map.push(map);
     }
@@ -231,6 +257,7 @@ class TemplateMap {
     let tagPrefix = this.tagPrefix;
     for (let depEntry of dependencyMap) {
       if (depEntry.startsWith(tagPrefix)) {
+        // is a tag (collection) entry
         let tagName = depEntry.substr(tagPrefix.length);
         if (this.isUserConfigCollectionName(tagName)) {
           // async
@@ -241,26 +268,35 @@ class TemplateMap {
           this.collectionsData[tagName] = this.getTaggedCollection(tagName);
         }
       } else {
+        // is a template entry
         let map = this.getMapEntryForInputPath(depEntry);
-        map._pages = await map.template.getTemplates(map.data);
+        if (map.behavior.ignored) {
+          map._pages = [];
+        } else {
+          map._pages = await map.template.getTemplates(
+            map.data,
+            map.behavior.rendered
+          );
 
-        let counter = 0;
-        for (let page of map._pages) {
-          // TODO do we need this in map entries?
-          if (!map.outputPath) {
-            map.outputPath = page.outputPath;
-          }
-          if (
-            counter === 0 ||
-            (map.data.pagination &&
-              map.data.pagination.addAllPagesToCollections)
-          ) {
-            if (!map.data.eleventyExcludeFromCollections) {
-              // TODO do we need .template in collection entries?
-              this.collection.add(page);
+          let counter = 0;
+          for (let page of map._pages) {
+            // Copy outputPath to map entry
+            if (!map.outputPath) {
+              map.outputPath = page.outputPath;
             }
+
+            if (
+              counter === 0 ||
+              (map.data.pagination &&
+                map.data.pagination.addAllPagesToCollections)
+            ) {
+              if (!map.data.eleventyExcludeFromCollections) {
+                // TODO do we need .template in collection entries?
+                this.collection.add(page);
+              }
+            }
+            counter++;
           }
-          counter++;
         }
       }
     }
@@ -299,12 +335,39 @@ class TemplateMap {
         return this.getMapEntryForInputPath(inputPath);
       }.bind(this)
     );
+
     await this.populateContentDataInMap(orderedMap);
 
     this.populateCollectionsWithContent();
     this.cached = true;
 
     this.checkForDuplicatePermalinks();
+
+    await this.config.events.emit(
+      "dependencyMap",
+      this.generateDependencyMapEventObject(orderedMap)
+    );
+  }
+
+  generateDependencyMapEventObject(orderedMap) {
+    let entries = [];
+    for (let entry of orderedMap) {
+      let ret = {
+        inputPath: entry.inputPath,
+        isExternal: !!(entry.data.permalink && entry.data.permalink.cloud),
+      };
+
+      // TODO `needs: []` array of inputPath or glob? this template uses
+
+      for (let page of entry._pages) {
+        entries.push(
+          Object.assign({}, ret, {
+            url: page.url,
+          })
+        );
+      }
+    }
+    return entries;
   }
 
   // TODO(slightlyoff): hot inner loop?
@@ -353,6 +416,9 @@ class TemplateMap {
     for (let map of orderedMap) {
       if (!map._pages) {
         throw new Error(`Content pages not found for ${map.inputPath}`);
+      }
+      if (!map.behavior.rendered) {
+        continue;
       }
       try {
         for (let pageEntry of map._pages) {
@@ -436,19 +502,20 @@ class TemplateMap {
   }
 
   isUserConfigCollectionName(name) {
-    let collections = this.configCollections || eleventyConfig.getCollections();
+    let collections =
+      this.configCollections || this.userConfig.getCollections();
     return name && !!collections[name];
   }
 
   getUserConfigCollectionNames() {
     return Object.keys(
-      this.configCollections || eleventyConfig.getCollections()
+      this.configCollections || this.userConfig.getCollections()
     );
   }
 
   async getUserConfigCollection(name) {
     let configCollections =
-      this.configCollections || eleventyConfig.getCollections();
+      this.configCollections || this.userConfig.getCollections();
 
     // This works with async now
     let result = await configCollections[name](this.collection);
@@ -460,7 +527,7 @@ class TemplateMap {
   async _testGetUserConfigCollectionsData() {
     let collections = {};
     let configCollections =
-      this.configCollections || eleventyConfig.getCollections();
+      this.configCollections || this.userConfig.getCollections();
 
     for (let name in configCollections) {
       collections[name] = configCollections[name](this.collection);

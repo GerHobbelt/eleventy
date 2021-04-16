@@ -1,12 +1,12 @@
 const test = require("ava");
 const Eleventy = require("../src/Eleventy");
 const EleventyWatchTargets = require("../src/EleventyWatchTargets");
-const templateConfig = require("../src/Config");
-
-const config = templateConfig.getConfig();
+const TemplateConfig = require("../src/TemplateConfig");
 
 test("Eleventy, defaults inherit from config", async (t) => {
   let elev = new Eleventy();
+
+  let config = new TemplateConfig().getConfig();
 
   t.truthy(elev.input);
   t.truthy(elev.outputDir);
@@ -106,6 +106,18 @@ test("Eleventy set input/output, one file input", async (t) => {
   t.is(elev.outputDir, "./test/stubs/_site");
 });
 
+test("Eleventy set input/output, one file input, deeper subdirectory", async (t) => {
+  let elev = new Eleventy(
+    "./test/stubs/subdir/index.html",
+    "./test/stubs/_site"
+  );
+  elev.setInputDir("./test/stubs");
+
+  t.is(elev.input, "./test/stubs/subdir/index.html");
+  t.is(elev.inputDir, "./test/stubs");
+  t.is(elev.outputDir, "./test/stubs/_site");
+});
+
 test("Eleventy set input/output, one file input root dir", async (t) => {
   let elev = new Eleventy("./README.md", "./test/stubs/_site");
 
@@ -199,4 +211,27 @@ test.cb("Eleventy to ndjson (returns a stream)", (t) => {
       });
     });
   });
+});
+
+test("Two Eleventies, two configs!!! (config used to be a global)", async (t) => {
+  let elev1 = new Eleventy();
+
+  t.is(elev1.eleventyConfig, elev1.eleventyConfig);
+  t.is(elev1.config, elev1.config);
+  t.is(JSON.stringify(elev1.config), JSON.stringify(elev1.config));
+
+  let elev2 = new Eleventy();
+  t.not(elev1.eleventyConfig, elev2.eleventyConfig);
+  t.is(JSON.stringify(elev1.config), JSON.stringify(elev2.config));
+});
+
+test("Config propagates to other instances correctly", async (t) => {
+  let elev = new Eleventy();
+  await elev.init();
+
+  t.is(elev.extensionMap.eleventyConfig, elev.eleventyConfig);
+  t.is(elev.eleventyServe.config, elev.eleventyConfig);
+  t.is(elev.eleventyFiles.eleventyConfig, elev.eleventyConfig);
+  t.is(elev.templateData.eleventyConfig, elev.eleventyConfig);
+  t.is(elev.writer.eleventyConfig, elev.eleventyConfig);
 });
