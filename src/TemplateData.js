@@ -258,6 +258,8 @@ class TemplateData {
       await this.getGlobalDataFiles()
     );
 
+    this.config.events.emit("globalDataFiles", files);
+
     let dataFileConflicts = {};
 
     for (let j = 0, k = files.length; j < k; j++) {

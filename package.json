@@ -1,6 +1,6 @@
 {
   "name": "@gerhobbelt/eleventy",
-  "version": "1.0.0-12",
+  "version": "1.0.0-15",
   "description": "Transform a directory of templates into HTML.",
   "publishConfig": {
     "access": "public"
@@ -94,7 +94,7 @@
     "vue-server-renderer": "^2.6.12"
   },
   "dependencies": {
-    "@11ty/dependency-tree": "^1.0.0",
+    "@11ty/dependency-tree": "^2.0.0",
     "browser-sync": "^2.26.14",
     "chalk": "^4.1.0",
     "chokidar": "^3.5.1",

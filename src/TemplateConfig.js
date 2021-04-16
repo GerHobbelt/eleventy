@@ -35,10 +35,10 @@ class EleventyConfigError extends EleventyBaseError {}
  * Config for a template.
  *
  * @param {{}} customRootConfig - tbd.
- * @param {String} localProjectConfigPath - Path to local project config.
+ * @param {String} projectConfigPath - Path to local project config.
  */
 class TemplateConfig {
-  constructor(customRootConfig, localProjectConfigPath) {
+  constructor(customRootConfig, projectConfigPath) {
     this.userConfig = new UserConfig();
 
     /** @member {module:11ty/eleventy/TemplateConfig~TemplateConfig~override} - tbd. */
@@ -48,7 +48,7 @@ class TemplateConfig {
      * @member {String} - Path to local project config.
      * @default .eleventy.js
      */
-    this.localProjectConfigPath = localProjectConfigPath || ".eleventy.js";
+    this.projectConfigPath = projectConfigPath || ".eleventy.js";
 
     if (customRootConfig) {
       /**
@@ -74,7 +74,7 @@ class TemplateConfig {
    * @returns {String} - The normalised local project config file path.
    */
   getLocalProjectConfigFile() {
-    return TemplatePath.addLeadingDotSlash(this.localProjectConfigPath);
+    return TemplatePath.addLeadingDotSlash(this.projectConfigPath);
   }
 
   get inputDir() {
@@ -112,7 +112,7 @@ class TemplateConfig {
   getConfig() {
     if (!this.hasConfigMerged) {
       debugDev("Merging via getConfig (first time)");
-      this.config = this.mergeConfig(this.localProjectConfigPath);
+      this.config = this.mergeConfig(this.projectConfigPath);
       this.hasConfigMerged = true;
     }
     return this.config;
@@ -124,7 +124,7 @@ class TemplateConfig {
    * @param {String} path - The new config path.
    */
   setProjectConfigPath(path) {
-    this.localProjectConfigPath = path;
+    this.projectConfigPath = path;
 
     if (this.hasConfigMerged) {
       // merge it again
@@ -197,10 +197,7 @@ class TemplateConfig {
    */
   mergeConfig() {
     let localConfig = {};
-    let path = TemplatePath.join(
-      TemplatePath.getWorkingDir(),
-      this.localProjectConfigPath
-    );
+    let path = TemplatePath.absolutePath(this.localProjectConfigPath);
 
     debug(`Merging config with ${path}`);
 
