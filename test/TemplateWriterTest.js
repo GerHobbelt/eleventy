@@ -685,7 +685,6 @@ test("Passthrough file output", async (t) => {
 
   const mgr = tw.eleventyFiles.getPassthroughManager();
   mgr.setConfig({
-    passthroughFileCopy: true,
     passthroughCopies: {
       "./test/stubs/template-passthrough/static": true,
       "./test/stubs/template-passthrough/static/": "./",

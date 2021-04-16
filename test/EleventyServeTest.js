@@ -30,6 +30,8 @@ test("Get Options", (t) => {
       baseDir: "_site",
     },
     watch: false,
+    ui: false,
+    ghostMode: false,
   });
 });
 
@@ -53,6 +55,8 @@ test("Get Options (with a pathPrefix)", (t) => {
       },
     },
     watch: false,
+    ui: false,
+    ghostMode: false,
   });
 });
 
@@ -76,5 +80,7 @@ test("Get Options (override in config)", (t) => {
       baseDir: "_site",
     },
     watch: false,
+    ui: false,
+    ghostMode: false,
   });
 });
